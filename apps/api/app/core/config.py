@@ -17,7 +17,13 @@ class Settings(BaseSettings):
     database_url: str
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
-    llm_provider: Literal["none"] = "none"
+    llm_provider: Literal["none", "gemini"] = "none"
+    gemini_api_key: SecretStr | None = None
+    llm_model: str = Field(default="", pattern=r"^[a-zA-Z0-9_.-]{0,150}$")
+    ai_max_jobs_per_run: int = Field(default=5, ge=0, le=10)
+    storage_dir: Path = ROOT / "storage"
+    discovery_executor: Literal["local", "celery"] = "local"
+    discovery_schedule_enabled: bool = False
     application_mode: Literal["approval"] = "approval"
     auto_submit_enabled: bool = False
     discovery_interval_hours: int = Field(default=6, ge=1, le=24)

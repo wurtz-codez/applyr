@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.v1.mvp import router as mvp_router
 from app.core.security import require_auth
 from app.db.session import get_session
 from app.repositories.profile import get_profile
@@ -26,3 +27,6 @@ def read_profile(session: Session = Depends(get_session)):
 @router.put("/profile", response_model=ProfileResponse)
 def update_profile(payload: ProfileInput, session: Session = Depends(get_session)):
     return save_profile(session, payload)
+
+
+router.include_router(mvp_router)
