@@ -1,7 +1,7 @@
 [project]
 name = "applyr-api"
-version = "0.1.0"
-description = "JobPilot AI foundation API and workers"
+version = "0.2.0"
+description = "Multi-source job aggregation backend"
 requires-python = ">=3.12,<3.15"
 dependencies = [
   "fastapi>=0.115,<1",
@@ -10,7 +10,6 @@ dependencies = [
   "sqlalchemy>=2.0,<2.1",
   "psycopg[binary]>=3.2,<4",
   "alembic>=1.15,<2",
-  "celery[redis]>=5.5,<6",
   "httpx>=0.28,<1",
 ]
 [dependency-groups]

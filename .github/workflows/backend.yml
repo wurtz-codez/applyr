@@ -1,0 +1,22 @@
+name: Backend checks
+on:
+  push:
+  pull_request:
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      API_TOKEN: ci-only-token-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      JOBS_DATABASE_URL: sqlite:///./ci.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.14'
+      - run: uv sync --project apps/api --frozen
+      - run: uv run --project apps/api --frozen ruff check apps/api
+      - run: uv run --project apps/api --frozen pytest apps/api/tests -q
+      - run: uv run --frozen alembic upgrade head
+        working-directory: apps/api
+      - run: uv run --frozen alembic check
+        working-directory: apps/api
