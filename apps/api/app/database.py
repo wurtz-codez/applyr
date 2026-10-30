@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from sqlalchemy import MetaData, create_engine, event
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session
 
 from app.config import get_settings
@@ -21,22 +21,15 @@ class Base(DeclarativeBase):
 @lru_cache
 def get_engine():
     url = get_settings().jobs_database_url
-    sqlite = url.startswith("sqlite")
-    if sqlite and ":memory:" not in url:
-        path = Path(url.removeprefix("sqlite:///"))
-        path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    engine = create_engine(
+    if not url.startswith("postgresql"):
+        raise RuntimeError(
+            "Only PostgreSQL is supported. Set JOBS_DATABASE_URL to a PostgreSQL URL."
+        )
+    return create_engine(
         url,
         pool_pre_ping=True,
-        connect_args={"check_same_thread": False, "timeout": 30} if sqlite else {},
+        connect_args={"options": "-c timezone=UTC"},
     )
-    if sqlite:
-
-        @event.listens_for(engine, "connect")
-        def configure(connection, _):
-            connection.execute("PRAGMA foreign_keys=ON")
-
-    return engine
 
 
 def get_session():

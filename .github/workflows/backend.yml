@@ -5,9 +5,25 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: applyr
+          POSTGRES_PASSWORD: applyr
+          POSTGRES_DB: applyr_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       API_TOKEN: ci-only-token-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      JOBS_DATABASE_URL: sqlite:///./ci.sqlite3
+      JOBS_DATABASE_URL: postgresql+psycopg://applyr:applyr@localhost:5432/applyr_test
+      TEST_DATABASE_URL: postgresql+psycopg://applyr:applyr@localhost:5432/applyr_test
+      APP_ENV: production
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

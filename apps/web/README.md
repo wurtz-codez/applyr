@@ -5,7 +5,8 @@ the FastAPI backend without exposing `API_TOKEN` to the browser.
 
 ## Run
 
-Start the API from the repository root first:
+Start the API from the repository root first. It requires PostgreSQL and a valid
+`JOBS_DATABASE_URL` in the root `.env` (see the root README and `.env.example`):
 
 ```sh
 cd apps/api

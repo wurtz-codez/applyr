@@ -94,18 +94,23 @@ def run_install(command: list[str], label: str, env: dict[str, str]) -> None:
         fail(f"{label} dependency installation failed (exit {error.returncode}).")
 
 
-def env_has_token() -> bool:
+def env_value(key: str) -> str:
+    value = os.environ.get(key, "").strip()
+    if value:
+        return value
     path = ROOT / ".env"
-    if not path.exists():
-        return False
     try:
         contents = path.read_text()
     except OSError:
-        return False
-    match = re.search(r"^(?:export\s+)?API_TOKEN\s*=\s*(.*)$", contents, re.MULTILINE)
-    if not match:
-        return False
-    value = match.group(1).strip().strip("'\"")
+        return ""
+    match = re.search(
+        rf"^(?:export\s+)?{re.escape(key)}\s*=\s*(.*)$", contents, re.MULTILINE
+    )
+    return match.group(1).strip().strip("'\"") if match else ""
+
+
+def env_has_token() -> bool:
+    value = env_value("API_TOKEN")
     return bool(value) and not value.startswith("replace_")
 
 
@@ -190,8 +195,40 @@ def main() -> None:
             "or add API_TOKEN to the root .env."
         )
 
+    database_url = env_value("JOBS_DATABASE_URL")
+    if not database_url:
+        fail(
+            "Set JOBS_DATABASE_URL to a PostgreSQL database before starting. "
+            "See .env.example and the README quick start."
+        )
+    if not database_url.startswith(
+        ("postgres://", "postgresql://", "postgresql+psycopg://")
+    ):
+        fail("JOBS_DATABASE_URL must be a PostgreSQL URL.")
+
     run_install([uv, "sync", "--project", "apps/api", "--frozen"], "backend", env)
     run_install(pnpm + ["--dir", "apps/web", "install", "--frozen-lockfile"], "frontend", env)
+
+    say("Checking PostgreSQL connection")
+    probe = subprocess.run(
+        [
+            uv,
+            "run",
+            "--project",
+            "apps/api",
+            "--frozen",
+            "python",
+            "-c",
+            "from app.database import get_engine; get_engine().connect().close()",
+        ],
+        cwd=ROOT,
+        env=env,
+    )
+    if probe.returncode:
+        fail(
+            "Could not connect to PostgreSQL. Start the database, create the target database, "
+            "and check JOBS_DATABASE_URL."
+        )
 
     api: subprocess.Popen | None = None
     web: subprocess.Popen | None = None

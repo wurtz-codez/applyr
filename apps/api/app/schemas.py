@@ -9,8 +9,10 @@ class UTCResponse(BaseModel):
     @field_validator("*", mode="before")
     @classmethod
     def utc_datetimes(cls, value):
-        if isinstance(value, datetime) and value.tzinfo is None:
-            return value.replace(tzinfo=UTC)
+        if isinstance(value, datetime):
+            if value.tzinfo is None:
+                return value.replace(tzinfo=UTC)
+            return value.astimezone(UTC)
         return value
 
 

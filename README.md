@@ -3,7 +3,7 @@
 **Collect jobs from multiple sources. Explore them in one filterable dashboard.**
 
 Applyr combines public job feeds and Tavily web search, removes duplicate listings, and serves
-them through a Next.js dashboard backed by FastAPI and SQLite.
+them through a Next.js dashboard backed by FastAPI and PostgreSQL.
 
 [Quick start](#quick-start) · [Using the dashboard](#using-the-dashboard) ·
 [Everyday commands](#everyday-commands) · [Troubleshooting](#troubleshooting) ·
@@ -18,7 +18,7 @@ them through a Next.js dashboard backed by FastAPI and SQLite.
 | Browse and narrow down listings | Keyword, company, location, work mode, type, experience, tags, source, date, and salary filters |
 | Inspect a role | Job details, original listing link, and source attribution |
 | Keep search results honest | Structured job postings and incomplete search pages are labeled separately |
-| Keep collected data between sessions | Local SQLite storage and refresh history |
+| Keep collected data between sessions | PostgreSQL storage and refresh history |
 
 The current project focuses on discovery and browsing. Resume tailoring, AI suitability
 matching, and automatic applications are outside this version.
@@ -32,7 +32,7 @@ flowchart LR
     PAGES --> STRUCTURED{"Structured job data?"}
     STRUCTURED -- Yes --> NORMALIZE
     STRUCTURED -- No --> LEADS["Labeled search results<br/>Unknown fields stay empty"]
-    NORMALIZE --> DB[("SQLite job database")]
+    NORMALIZE --> DB[("PostgreSQL job database")]
     LEADS --> DB
     DB --> API["FastAPI<br/>localhost:8000"]
     API --> WEB["Next.js dashboard<br/>localhost:3000/jobs"]
@@ -58,6 +58,7 @@ view shows job postings; search pages can be inspected separately.
 | [uv](https://docs.astral.sh/uv/getting-started/installation/) | Install and run the Python backend |
 | [Node.js](https://nodejs.org/en/download) | Node.js 24 recommended for the dashboard |
 | [pnpm](https://pnpm.io/installation) | 10.24.0 is the version used for local setup |
+| [PostgreSQL](https://www.postgresql.org/download/) | 16+; local development and Render database |
 | Make | Optional shortcut commands on macOS/Linux; direct uv equivalents are below |
 
 If pnpm is missing and Node.js/npm are already installed:
@@ -66,7 +67,8 @@ If pnpm is missing and Node.js/npm are already installed:
 npm install --global pnpm@10.24.0
 ```
 
-Docker, PostgreSQL, Redis, and a Tavily key are not needed to start with public feeds.
+PostgreSQL is required. Docker, Redis, and a Tavily key are not needed to start with public
+feeds.
 
 ## Quick start
 
@@ -78,7 +80,8 @@ command:
 ```
 
 The script creates `.env` if it is missing, installs the backend and frontend dependencies,
-waits for the API, and runs the API and dashboard together until Ctrl-C. It uses ports 8000
+waits for the API, and runs the API and dashboard together until Ctrl-C. PostgreSQL must be
+running and `JOBS_DATABASE_URL` must point to a database before you start. It uses ports 8000
 and 3000; set `API_PORT` and `WEB_PORT` if those are already taken. Stop any existing dev
 servers first. On a fresh database, run `make refresh` once after it starts to collect the
 first listings.
@@ -105,7 +108,7 @@ cd applyr
 Already have a local checkout? Start from its repository root and skip cloning.
 Unless a step says otherwise, run commands below from that root.
 
-### 2. Create local configuration
+### 2. Create local configuration and database
 
 ```sh
 python3 scripts/bootstrap.py
@@ -113,6 +116,23 @@ python3 scripts/bootstrap.py
 
 This creates a private root `.env`, generates `API_TOKEN`, and prepares the storage directory.
 An existing `.env` is preserved. On Windows, use `python` if `python3` is unavailable.
+
+Start PostgreSQL and create the local database. On macOS with Homebrew:
+
+```sh
+brew services start postgresql@18
+createdb applyr
+```
+
+The generated `.env` contains a local connection URL:
+
+```dotenv
+JOBS_DATABASE_URL=postgresql+psycopg://localhost/applyr
+```
+
+Edit it if your PostgreSQL user, password, host or database name differs. On Render, use the
+**Internal Database URL** from a Render PostgreSQL service; `postgres://` and
+`postgresql://` URLs are normalized to the installed `psycopg` driver automatically.
 
 You can start with the public feeds immediately. To enable web search, add your Tavily key
 to the root `.env`:
@@ -174,8 +194,8 @@ steps below.
 make dev
 ```
 
-Keep this terminal open. Startup creates the database and applies migrations automatically.
-Confirm that http://127.0.0.1:8000/healthz returns `{"status":"ok"}`.
+Keep this terminal open. Startup applies migrations automatically; the database itself must
+already exist. Confirm that http://127.0.0.1:8000/healthz returns `{"status":"ok"}`.
 
 Without Make:
 
@@ -235,6 +255,7 @@ Run backend commands from the repository root:
 | Command | Purpose |
 | --- | --- |
 | `make dev` | Start the API with code reload |
+| `make migrate` | Apply PostgreSQL migrations |
 | `make refresh` | Collect jobs using the configured default sources/query |
 | `make jobs` | Preview stored records in your terminal |
 | `make check` | Run backend lint, tests, and the migration/schema check |
@@ -259,11 +280,30 @@ In this workspace, `.tools/python/bin/uv` can replace `uv`. To inspect the API d
 - **`apps/web/.env.local` (optional):** copy [the web example](apps/web/.env.example) here only
   when overriding the default API address or configuring a deployment.
 - **`API_BASE_URL`:** defaults to `http://127.0.0.1:8000` on the web server.
-- **`storage/jobs.sqlite3`:** collected listings and refresh history; created automatically.
-- **`JOBS_DATABASE_URL`:** optional database override. Run one API process for local SQLite use.
+- **`JOBS_DATABASE_URL`:** PostgreSQL connection URL used by the API. It is required for
+  persistent data; deployed environments must point it at a managed PostgreSQL service.
 
 Restart the API after changing backend settings. If you change `API_TOKEN`, restart both the
 API and frontend so they use the same value. Keep `.env` and local storage out of Git.
+
+## Deploying on Render
+
+Render's default filesystem is ephemeral, so do not put the database in `storage/` or on a
+Render disk. Use a managed Render PostgreSQL database and give the API its connection URL:
+
+1. Create a **Render PostgreSQL** instance.
+2. In the API web service, set **`JOBS_DATABASE_URL`** to the database's **Internal Database
+   URL**. Also set `API_TOKEN`, `APP_ENV=production`, and optionally `TAVILY_API_KEY`.
+3. Use `uv sync --frozen` in the build and start the API with
+   `uv run --frozen uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Startup applies
+   migrations; create the database before the first deploy.
+4. In the web service, set `API_BASE_URL` to the API's public URL and the same `API_TOKEN`.
+   Start Next with `pnpm exec next start --hostname 0.0.0.0 --port $PORT` from `apps/web`.
+5. Do not give the web service a database URL. The token and database credentials stay
+   server-side.
+
+The API refuses to start on Render if `JOBS_DATABASE_URL` still points at localhost. An
+unreachable database therefore fails loudly instead of losing data on the next restart.
 
 ## Troubleshooting
 
@@ -271,7 +311,8 @@ API and frontend so they use the same value. Keep `.env` and local storage out o
 | --- | --- |
 | `uv`, `pnpm`, or `make` is missing | Install the prerequisites; use the direct uv commands if Make is unavailable. |
 | The feed has no jobs | Run `make refresh`, inspect its summary, then reload `/jobs`. A fresh clone has no bundled dataset. |
-| The feed reports that the API is offline | Start `make dev` and check `/healthz`. Confirm `API_BASE_URL` if you changed the port. |
+| The feed reports that the API is offline | Start PostgreSQL, then `make dev`, and check `/healthz`. Confirm `JOBS_DATABASE_URL` and `API_BASE_URL`. |
+| The API fails with a database error | Check that the PostgreSQL database exists, `JOBS_DATABASE_URL` is a valid PostgreSQL URL, and `make migrate` has run. Render deployments must use a managed Render PostgreSQL URL. |
 | The API rejects the token | Keep the same `API_TOKEN` in root `.env` and any web environment override, then restart both servers. |
 | Tavily is not configured | Add `TAVILY_API_KEY` to root `.env`. Public feeds still work without it. |
 | Refresh says `CACHED` or `COOLDOWN` | The source is within its refresh interval or has asked the collector to wait. Check `next_refresh_at`. |
@@ -281,8 +322,9 @@ API and frontend so they use the same value. Keep `.env` and local storage out o
 | Port 3000 or 8000 is already in use | Stop your previous server instance with Ctrl+C, or configure a different port and matching `API_BASE_URL`. |
 
 The backend currently has 28 isolated tests covering collection, filters, deduplication,
-source failures, budgets, authentication, web-fetch protections, and migrations. They do not
-change your stored jobs or make paid API calls.
+source failures, budgets, authentication, web-fetch protections, and migrations. They require
+PostgreSQL and use a dedicated `applyr_test` database by default (override with
+`TEST_DATABASE_URL`); they do not change your stored jobs or make paid API calls.
 
 ## API reference
 
@@ -382,8 +424,8 @@ applyr/
 ├── apps/
 │   ├── api/             # FastAPI, source adapters, database, migrations, tests
 │   └── web/             # Next.js landing page, job feed, filters, job detail
-├── scripts/             # Local configuration bootstrap
-├── storage/             # Ignored SQLite database and private local archives
+├── scripts/             # Bootstrap and local dev runner
+├── storage/             # Ignored local archives
 ├── Makefile             # Backend development and collection commands
 ├── .env.example         # Safe configuration template
 └── README.md

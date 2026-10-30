@@ -1,5 +1,6 @@
 # Local engineering notes
 /IMPLEMENTATION_PLAN.md
+/docs/BACKEND_GUIDE.md
 
 # Secrets; keep safe configuration examples
 .env
@@ -40,8 +41,6 @@ htmlcov/
 # Runtime and applicant data
 /storage/*
 !/storage/.gitkeep
-*.db
-*.sqlite*
 celerybeat-schedule*
 celerybeat.pid
 .auth/
