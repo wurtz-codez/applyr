@@ -1,35 +1,9 @@
-import {
-  IBM_Plex_Mono,
-  Instrument_Serif,
-  Schibsted_Grotesk,
-} from "next/font/google";
+import Link from "next/link";
 import { HeroObject } from "@/components/landing/hero-object";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import "./landing.css";
 
 const GITHUB = "https://github.com/wurtz-codez/applyr";
-
-const display = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  display: "swap",
-  variable: "--font-lp-display",
-});
-
-const sans = Schibsted_Grotesk({
-  subsets: ["latin"],
-  weight: "variable",
-  display: "swap",
-  variable: "--font-lp-sans",
-});
-
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-  variable: "--font-lp-mono",
-});
 
 export const metadata = {
   title: "Applyr — Less noise. More signal.",
@@ -50,7 +24,7 @@ const marqueeItems = [
 export default function Home() {
   return (
     <LandingMotion>
-      <div className={`lp ${display.variable} ${sans.variable} ${mono.variable}`}>
+      <div className="lp">
         <div className="lp-grain" aria-hidden="true" />
 
         <header className="lp-nav">
@@ -65,14 +39,9 @@ export default function Home() {
             <a href={GITHUB} target="_blank" rel="noopener noreferrer">
               GitHub ↗
             </a>
-            <a
-              href={GITHUB}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="lp-btn lp-btn--nav"
-            >
-              Follow the build <span className="lp-btn-arrow" aria-hidden="true">↗</span>
-            </a>
+            <Link href="/jobs" className="lp-btn lp-btn--nav">
+              Open the feed <span className="lp-btn-arrow" aria-hidden="true">↗</span>
+            </Link>
           </nav>
         </header>
 
@@ -98,14 +67,9 @@ export default function Home() {
                 and the applications you actually send.
               </p>
               <div className="lp-hero-actions">
-                <a
-                  href={GITHUB}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="lp-btn"
-                >
-                  Follow the build <span className="lp-btn-arrow" aria-hidden="true">↗</span>
-                </a>
+                <Link href="/jobs" className="lp-btn">
+                  Open the feed <span className="lp-btn-arrow" aria-hidden="true">↗</span>
+                </Link>
                 <a href="#system" className="lp-link">
                   See the system <span aria-hidden="true">↓</span>
                 </a>
@@ -125,7 +89,7 @@ export default function Home() {
               </div>
 
               <span className="lp-chip lp-chip--a">
-                <i className="lp-chip-dot" /> Sources <b>06</b>
+                <i className="lp-chip-dot" /> Sources <b>03</b>
               </span>
               <span className="lp-chip lp-chip--b">Remote · India</span>
               <span className="lp-chip lp-chip--c">0–2 yrs</span>
@@ -424,16 +388,11 @@ export default function Home() {
                 <span className="lp-line"><span><em>Start steering.</em></span></span>
               </h2>
               <div className="lp-close-actions">
-                <a
-                  href={GITHUB}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="lp-btn lp-btn--lime"
-                >
-                  Get the source <span className="lp-btn-arrow" aria-hidden="true">↗</span>
-                </a>
+                <Link href="/jobs" className="lp-btn lp-btn--lime">
+                  Open the feed <span className="lp-btn-arrow" aria-hidden="true">↗</span>
+                </Link>
                 <p className="lp-micro lp-micro--light">
-                  Backend-first. Self-hosted. In progress.
+                  Self-hosted. Human-controlled.
                   <br />
                   You approve every move.
                 </p>

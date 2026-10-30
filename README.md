@@ -70,6 +70,21 @@ Docker, PostgreSQL, Redis, and a Tavily key are not needed to start with public 
 
 ## Quick start
 
+Already have the repository checked out? Install both apps and start them together with one
+command:
+
+```sh
+./scripts/dev.py
+```
+
+The script creates `.env` if it is missing, installs the backend and frontend dependencies,
+waits for the API, and runs the API and dashboard together until Ctrl-C. It uses ports 8000
+and 3000; set `API_PORT` and `WEB_PORT` if those are already taken. Stop any existing dev
+servers first. On a fresh database, run `make refresh` once after it starts to collect the
+first listings.
+
+The full step-by-step setup follows.
+
 ```mermaid
 flowchart LR
     CLONE["1. Clone"] --> ENV["2. Configure .env"]
