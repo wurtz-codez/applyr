@@ -1,0 +1,13 @@
+{
+  "name": "applyr",
+  "private": true,
+  "packageManager": "pnpm@10.24.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "pnpm --filter @applyr/web dev",
+    "build": "pnpm --filter @applyr/web build",
+    "lint": "pnpm --filter @applyr/web lint",
+    "typecheck": "pnpm --filter @applyr/web typecheck",
+    "contracts": "pnpm --filter @applyr/contracts generate"
+  }
+}

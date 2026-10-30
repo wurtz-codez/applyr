@@ -1,36 +1,60 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Local engineering notes
+/IMPLEMENTATION_PLAN.md
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
+# Secrets; keep safe configuration examples
 .env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+.aws/
 
-# vercel
-.vercel
-
-# typescript
+# JavaScript workspaces and build output
+node_modules/
+.pnpm-store/
+.pnp.*
+.next/
+out/
+dist/
+build/
 *.tsbuildinfo
 next-env.d.ts
+.vercel/
+
+# Python tooling
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+.tools/
+
+# Runtime and applicant data
+/storage/*
+!/storage/.gitkeep
+*.db
+*.sqlite*
+celerybeat-schedule*
+celerybeat.pid
+.auth/
+storage_state*.json
+playwright-report/
+test-results/
+coverage/
+*.log
+*.pid
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
