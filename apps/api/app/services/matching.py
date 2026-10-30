@@ -150,6 +150,8 @@ def save_match(session: Session, job: Job, profile: Profile, result: MatchResult
     key = cache_key(job, profile.current_version, result.provider, result.model_id)
     existing = cached(session, job, profile.current_version, result.provider, result.model_id)
     if existing:
+        if result.warning:
+            existing.result_json = {**existing.result_json, "warning": result.warning}
         return existing
     row = JobMatch(
         user_id=LOCAL_USER_ID,

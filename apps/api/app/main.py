@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
@@ -12,7 +13,10 @@ async def local_scheduler():
 
     while True:
         await asyncio.sleep(60)
-        await asyncio.to_thread(scheduled_discovery)
+        try:
+            await asyncio.to_thread(scheduled_discovery)
+        except Exception:
+            logging.getLogger(__name__).error("Scheduled discovery failed; retrying next check")
 
 
 @asynccontextmanager

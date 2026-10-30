@@ -107,3 +107,16 @@ class Resume(Base):
     version: Mapped[int]
     is_default: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Application(Base):
+    __tablename__ = "applications"
+    __table_args__ = (UniqueConstraint("user_id", "job_id"),)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    job_id: Mapped[UUID] = mapped_column(ForeignKey("jobs.id"))
+    resume_id: Mapped[UUID | None] = mapped_column(ForeignKey("resumes.id"))
+    status: Mapped[str] = mapped_column(String(30), default="APPLIED")
+    notes: Mapped[str] = mapped_column(Text, default="")
+    applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

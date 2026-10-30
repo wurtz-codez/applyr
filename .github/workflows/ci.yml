@@ -41,4 +41,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm build
+      - run: pnpm build --webpack
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.14'
+      - run: uv sync --project apps/api --frozen
+      - name: Verify isolated MVP form workflow
+        run: |
+          uv run --project apps/api python scripts/smoke_mvp.py serve > "$RUNNER_TEMP/applyr-api.log" 2>&1 &
+          api_pid=$!
+          WATCHPACK_POLLING=true API_BASE_URL=http://127.0.0.1:8011 pnpm dev --webpack --port 3001 > "$RUNNER_TEMP/applyr-web.log" 2>&1 &
+          web_pid=$!
+          trap 'kill "$api_pid" "$web_pid" 2>/dev/null || true' EXIT
+          uv run --project apps/api python scripts/smoke_mvp.py check

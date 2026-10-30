@@ -126,3 +126,28 @@ class DashboardStats(BaseModel):
     shortlisted: int
     profile_version: int | None
     latest_run: RunResponse | None
+
+
+class ApplicationInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    status: Literal["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "WITHDRAWN"] = "APPLIED"
+    notes: str = Field(default="", max_length=4000)
+
+
+class ApplicationResponse(ApplicationInput):
+    id: UUID
+    job_id: UUID
+    title: str
+    company: str
+    source_url: str
+    resume_id: UUID | None
+    resume_version: int | None
+    applied_at: datetime
+    updated_at: datetime
+
+
+class ApplicationsResponse(BaseModel):
+    items: list[ApplicationResponse]
+    total: int
+    offset: int
+    limit: int

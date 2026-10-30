@@ -98,7 +98,9 @@ def fetch_jobs(board: str, client: httpx.Client | None = None) -> tuple[list[Nor
                 deadline = time.monotonic() + 30
                 url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs"
                 with client.stream("GET", url, params={"content": "true"}) as response:
-                    if response.status_code in {429, 502, 503, 504} and attempt == 0:
+                    if response.status_code == 429:
+                        raise SourceError("SOURCE_RATE_LIMITED")
+                    if response.status_code in {502, 503, 504} and attempt == 0:
                         time.sleep(0.5)
                         continue
                     response.raise_for_status()

@@ -10,11 +10,14 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.session import get_session
-from app.models.discovery import AgentRun, Company, Job, JobMatch, Resume, Shortlist
+from app.models.discovery import AgentRun, Application, Company, Job, JobMatch, Resume, Shortlist
 from app.models.profile import LOCAL_USER_ID
 from app.repositories.jobs import count_query, jobs_query, summarize
 from app.repositories.profile import get_profile, lock_local_user
 from app.schemas.discovery import (
+    ApplicationInput,
+    ApplicationResponse,
+    ApplicationsResponse,
     CompanyInput,
     CompanyResponse,
     CompanyUpdate,
@@ -260,7 +263,17 @@ def default_resume(session: Session = Depends(get_session)):
     return row
 
 
-@router.post("/resumes", response_model=ResumeResponse, status_code=201)
+@router.post(
+    "/resumes",
+    response_model=ResumeResponse,
+    status_code=201,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/pdf": {"schema": {"type": "string", "format": "binary"}}},
+        }
+    },
+)
 async def upload_resume(
     request: Request,
     filename: str = Query(min_length=1, max_length=200),
@@ -302,4 +315,79 @@ def download_resume(resume_id: UUID, session: Session = Depends(get_session)):
             "X-Content-Type-Options": "nosniff",
             "Content-Security-Policy": "sandbox; default-src 'none'",
         },
+    )
+
+
+@router.post("/jobs/{job_id}/application", response_model=ApplicationResponse)
+def track_application(
+    job_id: UUID, payload: ApplicationInput, session: Session = Depends(get_session)
+):
+    lock_local_user(session)
+    job = session.get(Job, job_id)
+    if job is None:
+        raise HTTPException(404, "Job not found")
+    row = session.scalar(
+        select(Application).where(
+            Application.user_id == LOCAL_USER_ID,
+            Application.job_id == job_id,
+        )
+    )
+    if row is None:
+        resume = session.scalar(
+            select(Resume).where(
+                Resume.user_id == LOCAL_USER_ID,
+                Resume.is_default.is_(True),
+            )
+        )
+        row = Application(
+            user_id=LOCAL_USER_ID, job_id=job_id, resume_id=resume.id if resume else None
+        )
+        session.add(row)
+    row.status, row.notes, row.updated_at = payload.status, payload.notes, datetime.now(UTC)
+    session.commit()
+    session.refresh(row)
+    return serialize_application(session, row)
+
+
+def serialize_application(session: Session, row: Application) -> ApplicationResponse:
+    job = session.get(Job, row.job_id)
+    company = session.get(Company, job.company_id)
+    resume = session.get(Resume, row.resume_id) if row.resume_id else None
+    return ApplicationResponse(
+        id=row.id,
+        job_id=job.id,
+        title=job.title,
+        company=company.name,
+        source_url=job.source_url,
+        resume_id=row.resume_id,
+        resume_version=resume.version if resume else None,
+        status=row.status,
+        notes=row.notes,
+        applied_at=row.applied_at,
+        updated_at=row.updated_at,
+    )
+
+
+@router.get("/applications", response_model=ApplicationsResponse)
+def list_applications(
+    job_id: UUID | None = None,
+    status: Literal["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "WITHDRAWN"] | None = None,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100),
+    session: Session = Depends(get_session),
+):
+    query = select(Application).where(Application.user_id == LOCAL_USER_ID)
+    if job_id:
+        query = query.where(Application.job_id == job_id)
+    if status:
+        query = query.where(Application.status == status)
+    total = count_query(session, query)
+    rows = session.scalars(
+        query.order_by(Application.updated_at.desc()).offset(offset).limit(limit)
+    )
+    return ApplicationsResponse(
+        items=[serialize_application(session, row) for row in rows],
+        total=total,
+        offset=offset,
+        limit=limit,
     )

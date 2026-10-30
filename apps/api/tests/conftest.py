@@ -14,6 +14,10 @@ from app.db.session import get_session
 os.environ["APP_ENV"] = "test"
 os.environ["API_TOKEN"] = "test-token-" + "a" * 48
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["LLM_PROVIDER"] = "none"
+os.environ["GEMINI_API_KEY"] = ""
+os.environ["LLM_MODEL"] = ""
+os.environ["DISCOVERY_SCHEDULE_ENABLED"] = "false"
 
 
 @pytest.fixture

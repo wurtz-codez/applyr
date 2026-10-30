@@ -1,6 +1,9 @@
 # API contracts
 
-Export the current FastAPI schema from the repository root:
+`openapi.json` is generated from FastAPI; `src/api.d.ts` is generated from that schema.
+The web client imports schema types through `apps/web/src/lib/types.ts`.
+
+From the repository root, regenerate after changing API schemas:
 
 ```sh
 cd apps/api
@@ -9,6 +12,4 @@ cd ../..
 pnpm contracts
 ```
 
-Commit `openapi.json` and `src/api.d.ts` after generation. The web foundation currently
-uses local profile types; replace them with the generated schema types when generated
-contracts are available. Do not maintain two independent API contracts as features grow.
+Commit both generated files. Keep generation deterministic and do not hand-edit them.

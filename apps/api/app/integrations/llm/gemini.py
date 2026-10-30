@@ -1,4 +1,5 @@
 import json
+import re
 
 import httpx
 from pydantic import ValidationError
@@ -98,6 +99,26 @@ def analyze(
             result.component_scores.model_dump().values()
         ):
             raise AIError("AI_UNSUPPORTED_EVIDENCE")
+        supported = [fact for fact in facts if fact["id"] in result.matched_profile_fact_ids]
+        if result.component_scores.projects and not any(
+            fact["category"] == "project" for fact in supported
+        ):
+            raise AIError("AI_UNSUPPORTED_EVIDENCE")
+        if result.component_scores.experience and not any(
+            fact["category"] in {"experience", "project"} for fact in supported
+        ):
+            raise AIError("AI_UNSUPPORTED_EVIDENCE")
+        if result.component_scores.skills and not any(
+            re.search(
+                r"(?<![a-z0-9])" + re.escape(skill.casefold()) + r"(?![a-z0-9])",
+                fact["statement"].casefold(),
+            )
+            for skill in result.required_skills
+            for fact in supported
+        ):
+            raise AIError("AI_UNSUPPORTED_EVIDENCE")
+        if len(facts) < len(profile.facts) or len(description) > 24000:
+            result.confidence = "low"
         if not {skill.casefold() for skill in result.missing_skills} <= {
             skill.casefold() for skill in result.required_skills
         }:

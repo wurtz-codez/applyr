@@ -432,3 +432,121 @@ def test_resume_upload_rejects_invalid_data(client, filename, content, media_typ
     )
     assert response.status_code == status
     assert client.get("/api/v1/resumes", headers=AUTH).json() == []
+
+
+def test_manual_application_tracking_keeps_resume_snapshot(client, monkeypatch):
+    seed(client, monkeypatch)
+    job_id = client.get("/api/v1/jobs", headers=AUTH).json()["items"][0]["id"]
+    headers = {**AUTH, "Content-Type": "application/pdf"}
+    first = client.post(
+        "/api/v1/resumes?filename=first.pdf", content=pdf_fixture(), headers=headers
+    ).json()
+    tracked = client.post(
+        f"/api/v1/jobs/{job_id}/application",
+        headers=AUTH,
+        json={"status": "APPLIED", "notes": "Applied manually on the company site"},
+    )
+    assert tracked.status_code == 200
+    original = tracked.json()
+    assert original["resume_id"] == first["id"]
+    second = client.post(
+        "/api/v1/resumes?filename=second.pdf", content=pdf_fixture("Second"), headers=headers
+    ).json()
+    client.post(f"/api/v1/resumes/{second['id']}/default", headers=AUTH)
+    updated = client.post(
+        f"/api/v1/jobs/{job_id}/application",
+        headers=AUTH,
+        json={"status": "INTERVIEW", "notes": "Interview scheduled"},
+    ).json()
+    assert updated["id"] == original["id"]
+    assert updated["resume_id"] == first["id"] and updated["resume_version"] == 1
+    assert updated["applied_at"] == original["applied_at"]
+    applications = client.get("/api/v1/applications?status=INTERVIEW", headers=AUTH).json()
+    assert applications["total"] == 1
+    assert applications["items"][0]["notes"] == "Interview scheduled"
+    assert client.get("/api/v1/applications").status_code == 401
+    assert (
+        client.post(
+            f"/api/v1/jobs/{job_id}/application", headers=AUTH, json={"status": "SUBMITTED_BY_AI"}
+        ).status_code
+        == 422
+    )
+
+
+def test_discovery_ai_budget_reuses_cache_before_spending_next_run(client, monkeypatch):
+    seed(client, monkeypatch, [RAW, {**RAW, "id": 2}, {**RAW, "id": 3}])
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
+    monkeypatch.setenv("LLM_MODEL", "test-model")
+    monkeypatch.setenv("AI_MAX_JOBS_PER_RUN", "1")
+    get_settings.cache_clear()
+    calls = []
+
+    def fake(*args):
+        from app.schemas.discovery import AIResult
+
+        calls.append(True)
+        return AIResult.model_validate(AI)
+
+    monkeypatch.setattr("app.services.matching.analyze", fake)
+    for expected in [1, 2, 3, 3]:
+        client.post("/api/v1/jobs/discover", headers=AUTH, json={"use_ai": True})
+        assert len(calls) == expected
+    jobs = client.get("/api/v1/jobs", headers=AUTH).json()["items"]
+    assert all(job["match"]["provider"] == "gemini" for job in jobs)
+
+
+def test_rate_limited_source_is_not_retried():
+    calls = []
+
+    def rate_limited(request):
+        calls.append(request)
+        return httpx.Response(429, headers={"Retry-After": "60"})
+
+    with httpx.Client(transport=httpx.MockTransport(rate_limited)) as client:
+        with pytest.raises(SourceError, match="SOURCE_RATE_LIMITED"):
+            fetch_jobs("test", client)
+    assert len(calls) == 1
+
+
+def test_ai_cannot_claim_project_score_without_project_evidence():
+    settings = Settings(
+        _env_file=None, llm_provider="gemini", gemini_api_key="fake-key", llm_model="test-model"
+    )
+    profile = ProfileInput(full_name="Test", facts=[FACT])
+    invalid = {**AI, "component_scores": {**AI["component_scores"], "projects": 90}}
+    with (
+        httpx.Client(
+            transport=httpx.MockTransport(
+                lambda request: httpx.Response(
+                    200,
+                    json={
+                        "candidates": [
+                            {
+                                "finishReason": "STOP",
+                                "content": {"parts": [{"text": json.dumps(invalid)}]},
+                            }
+                        ],
+                    },
+                )
+            )
+        ) as client,
+        pytest.raises(AIError, match="AI_UNSUPPORTED_EVIDENCE"),
+    ):
+        analyze(settings, profile, "Backend", "Python", client)
+
+
+def test_ai_failure_warning_updates_a_preexisting_rule_result(client, monkeypatch):
+    seed(client, monkeypatch)
+    job_id = client.get("/api/v1/jobs", headers=AUTH).json()["items"][0]["id"]
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
+    monkeypatch.setenv("LLM_MODEL", "test-model")
+    get_settings.cache_clear()
+
+    def fail(*args):
+        raise AIError("AI_UNAVAILABLE")
+
+    monkeypatch.setattr("app.services.matching.analyze", fail)
+    result = client.post(f"/api/v1/jobs/{job_id}/match", headers=AUTH, json={"use_ai": True}).json()
+    assert result["warning"] == "AI_UNAVAILABLE"
