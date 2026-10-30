@@ -19,8 +19,15 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://localhost:6379/1"
     llm_provider: Literal["none"] = "none"
     application_mode: Literal["approval"] = "approval"
-    auto_submit_enabled: Literal[False] = False
+    auto_submit_enabled: bool = False
     discovery_interval_hours: int = Field(default=6, ge=1, le=24)
+
+    @field_validator("auto_submit_enabled")
+    @classmethod
+    def prohibit_auto_submission(cls, value: bool) -> bool:
+        if value:
+            raise ValueError("Automatic submission is not implemented and must remain disabled")
+        return value
 
     @field_validator("api_token")
     @classmethod

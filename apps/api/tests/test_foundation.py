@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import pytest
-from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import Session
 
+from alembic import command
 from app.core.config import Settings, get_settings
 from app.db.session import get_session
 from app.main import app
@@ -92,6 +92,11 @@ def test_profile_contract_rejects_unknown_fields():
 def test_unsafe_or_unimplemented_configuration_rejected(overrides):
     with pytest.raises(ValidationError):
         Settings(_env_file=None, **overrides)
+
+
+def test_false_environment_setting_is_accepted():
+    settings = Settings(_env_file=None, auto_submit_enabled="false")
+    assert settings.auto_submit_enabled is False
 
 
 def test_migration_roundtrip(tmp_path, monkeypatch):

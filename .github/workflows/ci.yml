@@ -24,7 +24,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: '3.14'
-      - run: uv sync
+      - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run alembic upgrade head
       - run: uv run alembic check
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build

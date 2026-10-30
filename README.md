@@ -7,11 +7,12 @@ supported company career-board openings, checks eligibility, ranks jobs against 
 candidate facts, prepares tailored materials, and requires explicit human approval for
 any future submission.
 
-**Current status: Phase 0 scaffold.** The repository now contains a Next.js dashboard,
+**Current status: Phase 0 running locally.** The repository now contains a Next.js dashboard,
 local token sign-in, a verified profile form and API, SQLAlchemy models, Alembic migration,
-Celery health task, and CI configuration. Dependency installation and runtime validation
-are blocked in the current setup environment by package-registry DNS failures. This is
-not yet a verified runnable release or the job-discovery MVP.
+Celery health task, and CI configuration. Dependencies are installed and SQLite migrations, 13 backend tests, Ruff, ESLint
+(no errors), TypeScript checks, and local HTTP checks have passed. Production build,
+PostgreSQL/Redis and browser interaction tests remain pending. This is the foundation,
+not yet the job-discovery MVP.
 
 | Available in source | Planned next |
 | --- | --- |
@@ -54,9 +55,9 @@ From the repository root:
 
 ```sh
 python3 scripts/bootstrap.py
-pnpm install
+pnpm install --frozen-lockfile
 cd apps/api
-uv sync --python 3.14
+uv sync --frozen --python 3.14
 uv run alembic upgrade head
 uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
@@ -83,11 +84,16 @@ HttpOnly, SameSite cookie; server-side code attaches it to API calls. Next.js Se
 Actions provide same-origin checks on form submissions. This is a local development
 authentication foundation, not a production account system.
 
-The current environment cannot resolve `registry.npmjs.org` or `pypi.org`. If installation
-fails with a name-resolution error, restore registry connectivity and rerun these
-commands. Lockfiles cannot be generated until dependencies resolve; generate and commit
-`pnpm-lock.yaml` and `apps/api/uv.lock` after the first successful installation. Then
-switch CI and container installation to frozen lockfiles.
+Dependency lockfiles are committed; CI and container installs use frozen resolution.
+Package downloads failed inside the agent environment, so initial dependencies were
+installed from the user’s terminal. If registry DNS errors recur, install from a
+terminal with network access.
+
+If Turbopack cannot start an FSEvent stream in your environment, use the local fallback:
+
+```sh
+WATCHPACK_POLLING=true pnpm dev --webpack
+```
 
 ## Verify the foundation
 
@@ -138,7 +144,7 @@ migration of personal data.
 
 ## Product roadmap
 
-1. **Foundation:** resolve dependencies, commit locks, run tests/builds, generate contracts, and add a browser smoke test.
+1. **Foundation:** run the production build, generate contracts, validate PostgreSQL/Redis, and add a browser smoke test.
 2. **Discovery MVP:** allowlisted Greenhouse feeds, normalization, deduplication, conservative eligibility checks, deterministic scoring, dashboard filters, shortlist and run history.
 3. **Application preparation:** verified fact library, versioned resumes, answer drafts, exact-payload approval and audit history.
 4. **Controlled execution:** local mock ATS first, then individually permitted supported forms, confirmation evidence and recovery.
