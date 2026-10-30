@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light;
+  background: #ece7dc;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #ece7dc;
+  color: #141410;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
