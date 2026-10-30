@@ -1,0 +1,6 @@
+{
+  "name": "@applyr/contracts",
+  "private": true,
+  "scripts": { "generate": "openapi-typescript openapi.json -o src/api.d.ts" },
+  "devDependencies": { "openapi-typescript": "^7.10.1" }
+}
