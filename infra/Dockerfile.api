@@ -4,7 +4,7 @@ WORKDIR /app/apps/api
 COPY apps/api/pyproject.toml apps/api/uv.lock ./
 RUN uv sync --frozen --no-dev
 COPY apps/api/ ./
-RUN useradd --create-home appuser && mkdir -p /home/appuser/beat \
+RUN useradd --create-home appuser && mkdir -p /home/appuser/beat /app/storage \
     && chown -R appuser:appuser /app /home/appuser/beat
 USER appuser
 EXPOSE 8000

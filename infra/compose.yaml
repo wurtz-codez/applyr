@@ -4,6 +4,7 @@ x-backend: &backend
     context: ..
     dockerfile: infra/Dockerfile.api
   env_file: ../.env.compose
+  volumes: ['appstorage:/app/storage']
 services:
   postgres:
     image: postgres:16
@@ -52,9 +53,10 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
-    volumes: ['beatdata:/home/appuser/beat']
+    volumes: ['beatdata:/home/appuser/beat', 'appstorage:/app/storage']
     command: [uv, run, --no-sync, celery, -A, 'app.workers.celery_app:celery_app', beat, -l, info, --schedule=/home/appuser/beat/schedule]
 volumes:
   pgdata:
   redisdata:
   beatdata:
+  appstorage:

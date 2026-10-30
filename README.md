@@ -1,55 +1,84 @@
 # JobPilot AI · Applyr
 
-**Discover better-fit software engineering jobs. Prepare stronger applications. Stay in control of every submission.**
+A self-hosted job discovery and application-tracking MVP for early-career software engineers.
+Discover openings from configured Greenhouse boards, review eligibility and match evidence,
+upload an existing resume, and track applications you submit yourself.
 
-Applyr is a self-hosted AI-assisted job search platform. The planned workflow discovers
-supported company career-board openings, checks eligibility, ranks jobs against verified
-candidate facts, prepares tailored materials, and requires explicit human approval for
-any future submission.
+**Implemented:** discovery, deduplication, job search/detail, eligibility gates, deterministic
+matching, optional Gemini matching, shortlists, private PDF uploads and defaults, application
+tracking, run history, and optional scheduling. Resume tailoring and automated submission
+are not implemented.
 
-**Current status: Phase 0 running locally.** The repository now contains a Next.js dashboard,
-local token sign-in, a verified profile form and API, SQLAlchemy models, Alembic migration,
-Celery health task, and CI configuration. Dependencies are installed and SQLite migrations, 13 backend tests, Ruff, ESLint
-(no errors), TypeScript checks, and local HTTP checks have passed. Production build,
-PostgreSQL/Redis and browser interaction tests remain pending. This is the foundation,
-not yet the job-discovery MVP.
+## Use the app
 
-| Available in source | Planned next |
-| --- | --- |
-| Authenticated profile read/write, verified facts, version counter | Greenhouse ingestion and deduplication |
-| Dashboard and profile editing shell | Eligibility checks, matching, job search and shortlist |
-| Local SQLite option and PostgreSQL-compatible models | PostgreSQL concurrency and integration validation |
-| Worker configuration and health task | Six-hour discovery schedule and run history |
-| Test suite and CI workflow | Generated, consumed frontend API contracts |
+1. Open http://127.0.0.1:3000 and sign in with `API_TOKEN` from your private root `.env`.
+2. In **Profile**, add your name and accurate skills, projects, education and experience.
+   Include an evidence source and confirm the facts. Matching uses these verified statements.
+3. In **Resumes**, upload a PDF up to 5 MiB. The first upload becomes the default. Additional
+   versions remain separate; select **Set as default** when you want to change it.
+4. In **Settings**, add public Greenhouse company boards. For a URL such as
+   `https://job-boards.greenhouse.io/company-slug`, use `company-slug` as the board token.
+   Discovery needs at least one enabled board; this provider does not offer a global job search.
+5. Select **Discover jobs** from Dashboard or Jobs. The **Runs** screen shows progress,
+   new/changed counts and source errors. Manual scans run locally without Redis.
+6. Browse **Jobs**, search/filter, save promising roles, and open a job for eligibility reasons,
+   score components, missing skills and supporting profile facts. Refresh a match after editing
+   your profile. AI results are identified as Gemini; rule-based results are labeled separately.
+7. Open the original listing and apply manually. Then choose **Record manual application**
+   on its job detail page. The current default resume version is recorded for reference.
+8. In **Applications**, update status to Applied, Interview, Offer, Rejected or Withdrawn,
+   and save notes. Changing your default resume never changes an existing tracking record.
 
-AI matching, resume generation, approvals, and browser submission are not implemented.
-No application is automatically submitted. There are no fabricated job results.
+Uploaded PDFs stay unchanged. Uploads do not rewrite your profile or tailor a resume.
+Recording an application only updates your tracker; it never submits anything to an employer.
 
-## Stack and layout
+## Gemini configuration
 
-- Frontend: Next.js App Router, React, TypeScript, Tailwind CSS. Add shadcn/ui components as feature screens grow.
-- Backend: Python 3.12–3.14, FastAPI, Pydantic, synchronous SQLAlchemy 2, Alembic.
-- Persistence: SQLite for single-user, single-process foundation development; PostgreSQL 16 for workers and the MVP.
-- Background work: Celery and Redis, with scheduling intentionally idle until discovery exists.
-- Tooling: pnpm 10.24.0, uv, pytest, Ruff, ESLint, GitHub Actions.
+Gemini is optional. Without credentials, discovery and deterministic matching still work.
+Add the following to your local root `.env` and restart the API:
 
-```text
-apps/web/            Next.js dashboard, sign-in and profile form
-apps/api/            FastAPI app, migrations, domain modules and tests
-packages/contracts/  OpenAPI export and TypeScript generation commands
-infra/               Optional Docker configuration for later use
-scripts/             Local config bootstrap and OpenAPI export
-storage/             Private local database and future artifacts (ignored)
+```dotenv
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_private_key
+LLM_MODEL=your_available_model_id
+AI_MAX_JOBS_PER_RUN=5
 ```
 
-The local `IMPLEMENTATION_PLAN.md` is deliberately ignored by Git. This README is the
-public setup guide; do not depend on that private file being present in a clone.
+Use a model ID available to your Gemini account. The Settings screen reports whether a
+provider, key and model are configured; this does not prove that the key or model is valid.
+A provider failure falls back to deterministic matching and leaves a visible warning.
+No live Gemini call has been verified without operator credentials; structured responses,
+invalid evidence, caching and failure paths are tested using fixtures.
 
-## Local development without Docker
+Only bounded job text and selected verified fact statements are sent to Gemini. The profile
+name field, evidence-source fields, API credentials and uploaded PDF are not included in the
+prompt. Facts themselves are user supplied, so avoid adding unrelated personal information.
+The adapter accepts structured output, rejects invented fact IDs and unsupported skills,
+and computes the weighted total on the server. AI cannot override an eligibility gate.
 
-Prerequisites: Node.js 24 LTS, pnpm 10.24.0, Python 3.14 (or 3.12/3.13), and
-[uv](https://docs.astral.sh/uv/getting-started/installation/). pnpm is installed on the
-current development machine. Docker is deferred.
+A discovery run makes at most `AI_MAX_JOBS_PER_RUN` new AI requests (0–10). Cached analyses
+are reused; later scans can analyze additional eligible jobs. Manually clicking **Match with
+Gemini** requests that job's analysis separately. AI requests may incur provider charges.
+
+## Eligibility and matching
+
+Defaults target software/backend/full-stack roles, 0–2 years, India or explicitly India-eligible
+remote jobs. Rules reject obvious senior roles and explicit incompatible experience/location
+requirements. Ambiguous geography, missing experience evidence, truncated descriptions and
+unverified hard education/work-authorization requirements need review and are not ranked.
+These conservative heuristics can miss or misread requirements; always read the source listing.
+
+Scores are relative fit estimates, not hiring probabilities. Deterministic scores use keyword
+coverage and verified evidence; Gemini returns scored components and evidence references.
+Weights: skills 40%, role 25%, experience 20%, projects 15%. Editing your profile invalidates
+old scores rather than displaying them as current. Refresh individual jobs or run discovery
+again to rescore. A successful full scan must miss a job three times before it is marked closed;
+failed or partially invalid feeds never count as closure evidence.
+
+## Local development
+
+Prerequisites: Node.js 24 LTS, pnpm 10.24.0, Python 3.12–3.14, and
+[uv](https://docs.astral.sh/uv/getting-started/installation/). Docker remains optional.
 
 From the repository root:
 
@@ -68,34 +97,52 @@ In a second terminal, from the repository root:
 pnpm dev
 ```
 
-Open the dashboard at http://localhost:3000. The API docs are at
-http://127.0.0.1:8000/docs and liveness is at http://127.0.0.1:8000/healthz.
-Sign in using `API_TOKEN` from your private root `.env`. Swagger's **Authorize** button
-accepts that same bearer token. No default password or public registration is provided.
-
-The bootstrap script generates a secret and preserves an existing `.env`. The default
-SQLite URL is relative to `apps/api`; run API and migration commands from that directory.
-Your database is stored at `storage/jobpilot.db`. Restarting the app preserves it.
-
-The frontend defaults to the local API address. To change it, copy
-`apps/web/.env.example` to `apps/web/.env.local` and edit `API_BASE_URL`. API tokens are
-never placed in `NEXT_PUBLIC_` variables. The sign-in form stores the token in an
-HttpOnly, SameSite cookie; server-side code attaches it to API calls. Next.js Server
-Actions provide same-origin checks on form submissions. This is a local development
-authentication foundation, not a production account system.
-
-Dependency lockfiles are committed; CI and container installs use frozen resolution.
-Package downloads failed inside the agent environment, so initial dependencies were
-installed from the user’s terminal. If registry DNS errors recur, install from a
-terminal with network access.
-
-If Turbopack cannot start an FSEvent stream in your environment, use the local fallback:
+If Turbopack cannot use macOS file events in your environment:
 
 ```sh
 WATCHPACK_POLLING=true pnpm dev --webpack
 ```
 
-## Verify the foundation
+App: http://127.0.0.1:3000 · API docs: http://127.0.0.1:8000/docs · liveness:
+http://127.0.0.1:8000/healthz. Swagger's **Authorize** accepts the same bearer token.
+
+Bootstrap creates a private `.env` and preserves an existing one. SQLite defaults to
+`storage/jobpilot.db`; run API commands from `apps/api`. Resumes live in `storage/resumes/`
+with generated storage names and private file permissions. `.env`, storage, browser state
+and `IMPLEMENTATION_PLAN.md` are ignored. The implementation plan is local engineering
+material and is not needed by a fresh clone.
+
+Frontend API credentials remain server-side. Sign-in uses an HttpOnly, SameSite cookie and
+Next.js Server Actions' origin checks. To change the API address, copy
+`apps/web/.env.example` to `apps/web/.env.local` and edit `API_BASE_URL`.
+For a production HTTPS deployment, review authentication and infrastructure separately.
+
+## Scheduling and background execution
+
+Manual scans use a durable run record and a local background thread by default. Duplicate
+active scans are blocked by a database lease; repeating an already claimed task does not
+re-ingest it. Source failures remain visible. A crashed run's lease expires after 20 minutes;
+starting a subsequent run then marks the old one interrupted. In-process work is not a durable
+queue, so keep the API running or use Celery for longer-lived background execution.
+
+For local automatic discovery, add and restart the API:
+
+```dotenv
+DISCOVERY_EXECUTOR=local
+DISCOVERY_SCHEDULE_ENABLED=true
+DISCOVERY_INTERVAL_HOURS=6
+```
+
+The local scheduler checks every minute and skips discovery when the latest scan is more
+recent than the configured interval. It needs a verified profile and at least one source.
+Run a single local API process with SQLite. PostgreSQL is the intended worker database.
+
+For PostgreSQL/Redis and Celery, see [infra/README.md](infra/README.md). Use
+`DISCOVERY_EXECUTOR=celery`, enable scheduling for Beat when wanted, and run exactly one Beat
+instance. Compose includes a shared volume for uploaded resumes. Docker/PostgreSQL/Redis have
+not been run locally in this session; PostgreSQL migrations are included in CI validation.
+
+## Verification
 
 From `apps/api`:
 
@@ -110,15 +157,45 @@ From the repository root:
 ```sh
 pnpm lint
 pnpm typecheck
-pnpm build
+pnpm build --webpack
 ```
 
-Backend tests cover authentication, verified-fact validation, profile persistence and
-versioning, migration rollback, configuration restrictions, and the worker health task.
-They use temporary SQLite databases and never submit applications. CI additionally
-checks migrations against PostgreSQL. A real browser smoke test remains to be added.
+The tests cover discovery idempotency, conservative eligibility, expired leases, source
+failures and closure rules, AI evidence validation/caching/budgets, profile changes, resume
+limits/private downloads/defaults, and application tracking with immutable resume references.
+The production build, static checks and an isolated HTTP form workflow have passed locally.
+Live feeds and paid Gemini calls depend on external connectivity, configured sources and keys.
 
-Export the API contract after installing dependencies and generating `.env`:
+The HTTP form smoke test uses temporary SQLite/files and a fixture feed and model. It does not
+add demo data to your real workspace or contact employers. Stop any frontend using the same
+`.next` directory before running these in separate terminals:
+
+```sh
+# Terminal 1, repository root
+apps/api/.venv/bin/python scripts/smoke_mvp.py serve
+
+# Terminal 2, repository root
+WATCHPACK_POLLING=true API_BASE_URL=http://127.0.0.1:8011 pnpm dev --webpack --port 3001
+
+# Terminal 3, repository root
+apps/api/.venv/bin/python scripts/smoke_mvp.py check
+```
+
+Restart the isolated fixture API before repeating the complete smoke test. These are HTTP
+form tests, not a browser rendering or external integration test. CI runs the same workflow.
+
+## API contracts and layout
+
+```text
+apps/web/            Next.js UI, authenticated actions and private download proxy
+apps/api/            FastAPI, SQLAlchemy models, migrations, services, providers and tests
+packages/contracts/  Generated OpenAPI and TypeScript schema types consumed by the UI
+scripts/             Bootstrap, OpenAPI export and isolated form smoke test
+infra/               Optional PostgreSQL/Redis/API/worker/Beat Compose setup
+storage/             Ignored database and uploaded PDF artifacts
+```
+
+After changing schemas, regenerate and commit contracts:
 
 ```sh
 cd apps/api
@@ -127,48 +204,18 @@ cd ../..
 pnpm contracts
 ```
 
-Commit the generated OpenAPI and TypeScript files. The initial web profile types remain
-local until contract generation can run; replacing them is a remaining foundation task.
+## Next scope
 
-## PostgreSQL, Redis and Docker later
-
-Use PostgreSQL before enabling multiple writers or background discovery. SQLite is a
-convenience for early profile development and does not validate PostgreSQL locking,
-JSONB semantics, or concurrent workers.
-
-Docker installation is deferred. Optional Compose files are prepared in `infra/`; see
-[the infrastructure guide](infra/README.md) for credentials and startup commands. They
-have not been executed locally. Keep Next.js on the host for development. Run exactly
-one Beat instance when scheduling is enabled. There is no automatic SQLite-to-PostgreSQL
-migration of personal data.
-
-## Product roadmap
-
-1. **Foundation:** run the production build, generate contracts, validate PostgreSQL/Redis, and add a browser smoke test.
-2. **Discovery MVP:** allowlisted Greenhouse feeds, normalization, deduplication, conservative eligibility checks, deterministic scoring, dashboard filters, shortlist and run history.
-3. **Application preparation:** verified fact library, versioned resumes, answer drafts, exact-payload approval and audit history.
-4. **Controlled execution:** local mock ATS first, then individually permitted supported forms, confirmation evidence and recovery.
-5. **Later:** more ATS sources, optional email tracking and multi-user support.
-
-Default search preferences are software engineering, backend and full-stack roles,
-0–2 years of experience, India or remote jobs explicitly open to India-based applicants.
-Ambiguous eligibility must be marked for review. An AI score must never override an
-eligibility gate.
-
-## Integrity and privacy
-
-- Use only candidate-verified qualifications and evidence. Never invent application facts.
-- Treat job descriptions as untrusted data, not instructions.
-- Keep `.env`, applicant artifacts, browser state, cookies and database files out of Git.
-- Require explicit approval of the exact document and answers before any future submission.
-- Pause for CAPTCHA, MFA, unknown required fields or changed application content.
-- Respect source restrictions and rate limits; never retry uncertain submissions blindly.
-- A health response proves process liveness only, not database or queue readiness.
+Resume tailoring, approval of exact application payloads, and controlled browser submission
+remain future work. Existing application records are manual tracking records, not confirmation
+that an automated submission occurred. Additional ATS adapters and full browser tests can be
+added after validating the initial boards and matching against your real search profile.
 
 ## References and license
 
-[Next.js](https://nextjs.org/docs) · [FastAPI](https://fastapi.tiangolo.com/) ·
-[SQLAlchemy](https://docs.sqlalchemy.org/en/20/) · [Alembic](https://alembic.sqlalchemy.org/) ·
-[Celery](https://docs.celeryq.dev/) · [Greenhouse API](https://docs.greenhouse.io/job-board)
+[Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html) ·
+[Gemini structured output](https://ai.google.dev/gemini-api/docs/structured-output) ·
+[FastAPI](https://fastapi.tiangolo.com/) · [Next.js](https://nextjs.org/docs) ·
+[SQLAlchemy](https://docs.sqlalchemy.org/en/20/) · [Celery](https://docs.celeryq.dev/)
 
 [MIT license](LICENSE), copyright 2026 KOUSTUBH.

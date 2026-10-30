@@ -4,7 +4,8 @@ import secrets
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-(root / "storage").mkdir(exist_ok=True)
+(root / "storage").mkdir(exist_ok=True, mode=0o700)
+os.chmod(root / "storage", 0o700)
 path = root / ".env"
 if path.exists():
     print("Existing .env preserved.")
