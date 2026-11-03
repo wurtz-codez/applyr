@@ -183,7 +183,7 @@ export function FeedFilterPanel({
 
         <Group label="India and junior roles">
           <label className="feed-check"><input type="checkbox" checked={!!filters.indiaEligible}
-            onChange={(e) => setSingle("india_eligible", e.target.checked ? "true" : "")} /><span>India eligible</span></label>
+            onChange={(e) => setSingle("india_eligible", e.target.checked ? "true" : "")} /><span>India location relevant</span></label>
           <label className="feed-check"><input type="checkbox" checked={!!filters.maxExperience}
             onChange={(e) => setSingle("experience_max", e.target.checked ? "2" : "")} /><span>Up to 2 years required</span></label>
           <label className="feed-check"><input type="checkbox" checked={filters.includeUncertain}

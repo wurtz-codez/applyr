@@ -66,7 +66,9 @@ class Greenhouse:
     async def fetch_jobs(self, configuration: SourceConfig, cursor=None) -> FetchResult:
         s = configuration
         url = f"https://boards-api.greenhouse.io/v1/boards/{quote(s.board_id, safe='')}/jobs"
-        listing, cache, unchanged = await self.http.get(url, cached=s.state.get("listing"))
+        listing, cache, unchanged = await self.http.get(
+            url, params={"content": "true"}, cached=s.state.get("listing")
+        )
         if not isinstance(listing, dict) or not isinstance(listing.get("jobs"), list):
             raise FetchFailure("INVALID_PAYLOAD", False)
         result = FetchResult(complete_snapshot=True, not_modified=unchanged)
@@ -76,7 +78,9 @@ class Greenhouse:
                 key = str(summary["id"])
                 previous = s.state.get("details", {}).get(key, {})
                 version = summary.get("updated_at")
-                if version and previous.get("version") == version:
+                if "content" in summary:
+                    raw = summary
+                elif version and previous.get("version") == version:
                     raw = previous["data"]
                 else:
                     raw, _, _ = await self.http.get(f"{url}/{quote(key, safe='')}")
@@ -213,6 +217,7 @@ class Ashby:
                 ):
                     job.location.india_eligible = True
                     job.location.evidence = "source primary/secondary workplace"
+                enrich(job)
             except (KeyError, ValueError, TypeError, AttributeError):
                 result.errors.append(FetchError(code="INVALID_JOB", recoverable=False))
         result.metadata = {"listing": cache}

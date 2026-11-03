@@ -1,5 +1,10 @@
 # Applyr job ingestion architecture
 
+> Job Ingestion v2 automatically seeds 71 verified India boards and four public feeds,
+> schedules keyless discovery and backfill, and adds explicit eligibility evidence.
+> See [the current v2 guide](JOB_INGESTION_V2.md) for defaults and upgrades.
+> The original manual registration and connector reference below remains available.
+
 This document describes the implemented code, including its operational limits. Basic ingestion requires no paid keys. It provides extensible, permitted source coverage, not exhaustive internet-wide job discovery.
 
 ## 1. Repository baseline and objectives
@@ -265,4 +270,4 @@ A subsequent local restart verified a live Redis service and a real Celery worke
 
 Not verified here: Docker image execution, installed Playwright/JobSpy extras, browser rendering and authorized restricted-platform integrations. Live list endpoints for all four ATS providers were verified; fixture tests cover their detail parsing and complete pipeline.
 
-Planned: tenant authentication, AI reranking, application automation integration, automated daily company discovery, standalone feed normalization without detail pages, larger Scrapy workflows, cross-run browser pooling, automatic browser selection, richer extraction vocabularies, global provider throttling, cache lifecycle/storage improvements, conflict review, exact incremental match updates and metrics exporters. These limitations do not prevent the default ATS → database → API → feed path from working without paid keys.
+Planned: tenant authentication, AI reranking, application automation integration, standalone feed normalization without detail pages, larger Scrapy workflows, cross-run browser pooling, automatic browser selection, richer extraction vocabularies, global provider throttling, cache lifecycle/storage improvements, conflict review, exact incremental match updates and metrics exporters. These limitations do not prevent the default ATS → database → API → feed path from working without paid keys.

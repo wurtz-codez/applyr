@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.orm import DeclarativeBase, Session
 
 from app.config import get_settings
@@ -42,4 +42,10 @@ def migrate():
 
     from alembic import command
 
-    command.upgrade(Config(str(Path(__file__).parents[1] / "alembic.ini")), "head")
+    # Serialize simultaneous API worker startup migrations; no ingestion or network here.
+    with get_engine().connect() as connection:
+        connection.execute(text("SELECT pg_advisory_lock(624711201)"))
+        try:
+            command.upgrade(Config(str(Path(__file__).parents[1] / "alembic.ini")), "head")
+        finally:
+            connection.execute(text("SELECT pg_advisory_unlock(624711201)"))

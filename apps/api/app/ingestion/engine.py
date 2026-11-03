@@ -9,17 +9,19 @@ from uuid import UUID
 
 import httpx
 from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_engine
 from app.ingestion.deduplicator import candidates, find_job
+from app.ingestion.eligibility import VERSION, apply_evaluation
 from app.ingestion.freshness import refresh_status
 from app.ingestion.http import HTTP, FetchFailure
 from app.ingestion.policies import check_access
 from app.ingestion.registry import CONNECTORS
 from app.ingestion.schemas import SourceConfig
-from app.models import IngestionRun, IngestionSource, Job, JobSource, JobTag, now
+from app.models import IngestionRun, IngestionSource, Job, JobSource, JobTag, SourceState, now
 from app.normalization import canonical_url
 
 log = logging.getLogger(__name__)
@@ -37,7 +39,7 @@ def source_config(source):
     )
 
 
-def queue_run(session: Session, source_id: UUID) -> IngestionRun:
+def queue_run(session: Session, source_id: UUID, *, commit=True) -> IngestionRun:
     source = session.scalar(
         select(IngestionSource).where(IngestionSource.id == source_id).with_for_update()
     )
@@ -47,7 +49,8 @@ def queue_run(session: Session, source_id: UUID) -> IngestionRun:
     timestamp = now()
     if source.active_run_id and source.lease_expires_at and source.lease_expires_at > timestamp:
         existing = session.get(IngestionRun, source.active_run_id)
-        session.commit()
+        if commit:
+            session.commit()
         return existing
     if source.active_run_id:
         previous = session.get(IngestionRun, source.active_run_id)
@@ -58,7 +61,8 @@ def queue_run(session: Session, source_id: UUID) -> IngestionRun:
     session.add(run)
     session.flush()
     source.active_run_id, source.lease_expires_at = run.id, timestamp + timedelta(minutes=12)
-    session.commit()
+    if commit:
+        session.commit()
     return run
 
 
@@ -80,6 +84,9 @@ def store_job(session, source, item):
     row, occurrence, key = find_job(session, item, source)
     inserted, deduplicated = row is None, row is not None and occurrence is None
     candidate_ids = candidates(session, item, source) if row is None else []
+    from app.ingestion.normalizer import enrich
+
+    item = enrich(item)
     values = item.model_dump(mode="json", exclude={"raw"})
     content = {
         k: v for k, v in values.items() if k not in {"source", "external_id", "source_fields"}
@@ -89,16 +96,20 @@ def store_job(session, source, item):
     digest = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
     if row is None:
         row = Job(
-            canonical_url=canonical_url(item.apply_url or item.job_url),
+            canonical_url=canonical_url(
+                item.job_url if source.source_type == "ats" else (item.apply_url or item.job_url)
+            ),
             first_seen_at=now(),
             primary_source=source.provider,
         )
         session.add(row)
     # ATS data takes precedence over HTML/aggregator data. Provenance always updates.
     authoritative = inserted or row.primary_source == source.provider or source.source_type == "ats"
-    changed = authoritative and row.content_hash != digest
+    changed = authoritative and (row.content_hash != digest or row.normalization_version != VERSION)
     if changed:
-        row.title, row.company, row.company_id = item.title, item.company, source.company_id
+        row.title, row.company = item.title, item.company
+        if source.source_type == "ats":
+            row.company_id = source.company_id
         row.location, row.description = item.location.label, item.description
         row.work_mode = item.location.remote_type.upper()
         row.employment_type = item.employment_type
@@ -107,7 +118,16 @@ def store_job(session, source, item):
             item.experience.min_years,
             item.experience.max_years,
         )
-        row.india_eligible = item.location.india_eligible
+        apply_evaluation(row, item)
+        for field in (
+            "salary_min",
+            "salary_max",
+            "salary_currency",
+            "salary_period",
+            "salary_text",
+            "experience_level",
+        ):
+            setattr(row, field, getattr(item, field))
         row.apply_url = canonical_url(item.apply_url) if item.apply_url else None
         row.original_job_url = item.job_url
         row.normalized_json, row.content_hash = values, digest
@@ -132,6 +152,7 @@ def store_job(session, source, item):
         )
         session.add(occurrence)
     occurrence.source_url, occurrence.last_seen_at = item.job_url, now()
+    occurrence.last_verified_at = now()
     occurrence.ats_identity = key
     occurrence.active = item.status == "active" and not (
         item.valid_through is not None and item.valid_through < now()
@@ -169,6 +190,27 @@ async def ingest(run_id: UUID, engine=None, http_client=None):
         if claimed.rowcount != 1:
             session.rollback()
             return
+        from app.ingestion.connectors.public_feeds import FEED_INTERVALS
+
+        if source.provider in FEED_INTERVALS:
+            # Share the request reservation with the legacy manual endpoint.
+            session.execute(
+                insert(SourceState)
+                .values(key=source.provider, provider=source.provider)
+                .on_conflict_do_nothing()
+            )
+            state = session.scalar(
+                select(SourceState).where(SourceState.key == source.provider).with_for_update()
+            )
+            if state.next_allowed_at and state.next_allowed_at > now():
+                source.next_fetch_at = state.next_allowed_at
+                source.active_run_id, source.lease_expires_at = None, None
+                run.status, run.finished_at = "SUCCEEDED", now()
+                session.commit()
+                return
+            state.next_allowed_at = now() + timedelta(
+                seconds=max(source.fetch_interval_seconds, FEED_INTERVALS[source.provider])
+            )
         source.last_attempt_at = now()
         source.lease_expires_at = now() + timedelta(minutes=12)
         session.commit()
@@ -184,10 +226,33 @@ async def ingest(run_id: UUID, engine=None, http_client=None):
         try:
             check_access(source)
             config = source_config(source)
+            if source.provider == "jobicy":
+                # Oldest verification first, bounded to ten status requests per daily check.
+                ids = session.scalars(
+                    select(JobSource.external_id)
+                    .where(
+                        JobSource.source_id == source.id,
+                    )
+                    .order_by(JobSource.last_verified_at.asc().nulls_first(), JobSource.id)
+                    .limit(1000)
+                ).all()
+                config.configuration = {
+                    **config.configuration,
+                    "verify_ids": [i for i in ids if i and i.isdigit()],
+                }
             connector = CONNECTORS[source.provider](
                 HTTP(http_client, interval=source.configuration.get("request_interval_seconds", 1))
             )
-            cursor, visited, complete_snapshot = None, set(), True
+            rolling = source.provider in {"arbeitnow", "jobicy", "himalayas"}
+            if rolling:
+                filter_hash = hashlib.sha256(
+                    json.dumps(config.configuration.get("filters", {}), sort_keys=True).encode()
+                ).hexdigest()
+                if config.state.get("traversal_filters") != filter_hash:
+                    config.state["resume_cursor"] = None
+                config.state["traversal_filters"] = filter_hash
+            cursor = config.state.get("resume_cursor") if rolling else None
+            visited, complete_snapshot = set(), True
             async with asyncio.timeout(540):
                 for _ in range(get_settings().ingestion_max_pages):
                     result = await connector.fetch_jobs(config, cursor)
@@ -209,6 +274,27 @@ async def ingest(run_id: UUID, engine=None, http_client=None):
                     run.fetched += len(result.jobs)
                     errors.extend(e.model_dump() for e in result.errors)
                     # Never replace complete state with a partial page checkpoint on failure.
+                    statuses = result.metadata.pop("verified_statuses", [])
+                    for verified in statuses:
+                        if not isinstance(verified, dict) or verified.get("status") not in {
+                            "active",
+                            "closed",
+                        }:
+                            continue
+                        occurrence = session.scalar(
+                            select(JobSource).where(
+                                JobSource.source_id == source.id,
+                                JobSource.external_id == str(verified.get("id")),
+                            )
+                        )
+                        if occurrence:
+                            occurrence.active = verified["status"] == "active"
+                            occurrence.last_verified_at = now()
+                            session.flush()
+                            if refresh_status(session, occurrence.job_id):
+                                from app.ingestion.matching import mark_dirty
+
+                                mark_dirty(session)
                     config.state.update(result.metadata)
                     if len(json.dumps(config.state).encode()) > (
                         get_settings().ingestion_max_state_mb * 1024 * 1024
@@ -218,6 +304,9 @@ async def ingest(run_id: UUID, engine=None, http_client=None):
                         from app.ingestion.matching import mark_dirty
 
                         mark_dirty(session)
+                    if rolling:
+                        config.state["resume_cursor"] = result.next_cursor
+                        source.sync_state = dict(config.state)
                     session.commit()
                     cursor = result.next_cursor
                     if cursor is None:
@@ -232,8 +321,13 @@ async def ingest(run_id: UUID, engine=None, http_client=None):
                         raise FetchFailure("PAGINATION_CYCLE", False)
                     visited.add(cursor)
                 else:
-                    raise FetchFailure("PAGE_LIMIT_REACHED")
+                    if not rolling:
+                        raise FetchFailure("PAGE_LIMIT_REACHED")
         except FetchFailure as exc:
+            if source.provider in {"jobicy", "himalayas"} and exc.error.code == "HTTP_400":
+                # Opaque feed cursors may expire or become invalid after filter changes.
+                source.sync_state = {**(source.sync_state or {}), "resume_cursor": None}
+                session.flush()  # Persist before the final ownership refresh reloads the source.
             errors.append(exc.error.model_dump())
             retry_after = exc.error.retry_after or 0
         except (TimeoutError, httpx.TimeoutException):
@@ -259,6 +353,13 @@ async def ingest(run_id: UUID, engine=None, http_client=None):
         else:
             source.last_success_at, source.failure_count, source.health = now(), 0, "healthy"
             delay = source.fetch_interval_seconds
+        if source.provider in FEED_INTERVALS:
+            state = session.get(SourceState, source.provider)
+            delay = max(delay, FEED_INTERVALS[source.provider])
+            state.next_allowed_at = now() + timedelta(seconds=delay)
+            state.last_error = errors[0]["code"] if errors else None
+            if not errors:
+                state.last_success_at = now()
         source.next_fetch_at = now() + timedelta(seconds=delay)
         source.active_run_id, source.lease_expires_at = None, None
         session.commit()

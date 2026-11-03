@@ -1,5 +1,10 @@
 # Job ingestion setup
 
+> Job Ingestion v2 automatically seeds 71 verified India boards and four public feeds,
+> schedules keyless discovery and backfill, and adds explicit eligibility evidence.
+> See [the current v2 guide](JOB_INGESTION_V2.md) for defaults and upgrades.
+> The original manual registration and connector reference below remains available.
+
 Run commands from the repository root unless a working directory is specified. Python 3.12–3.14, uv, PostgreSQL 16+, and Redis 7+ are required for scheduled ingestion. Node 24 and pnpm 10 are used for the existing Next.js dashboard. Docker Compose provides PostgreSQL/Redis/backend services as an alternative. No Tavily or model API key is needed.
 
 ## Local installation and environment
@@ -215,7 +220,7 @@ With `TAVILY_API_KEY` configured, this explicit command returns unverified sourc
 uv run --project apps/api --frozen python -m app.ingestion.cli discover 'software companies India careers Ashby Greenhouse'
 ```
 
-Review and register the candidates manually. The command never ingests jobs. There is no paid discovery task scheduled by default; automatic daily company discovery is planned. Legacy `app.cli refresh --provider tavily` remains an explicit compatibility path.
+Review and register the candidates manually. The command never ingests jobs. There is no paid discovery task scheduled by default; daily keyless company discovery is now implemented; see the v2 guide. Legacy `app.cli refresh --provider tavily` remains an explicit compatibility path.
 
 ## Docker Compose
 

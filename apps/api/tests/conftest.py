@@ -19,6 +19,7 @@ os.environ["JOBS_DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["API_TOKEN"] = "test-token-" + "a" * 48
 os.environ["TAVILY_API_KEY"] = ""
 os.environ["ENRICH_WEB_RESULTS"] = "false"
+os.environ["INGESTION_BOOTSTRAP_ENABLED"] = "false"
 
 from app.config import get_settings  # noqa: E402
 from app.database import Base, get_engine, migrate  # noqa: E402

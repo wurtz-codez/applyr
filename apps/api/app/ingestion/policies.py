@@ -2,13 +2,14 @@ from app.ingestion.schemas import SourceConfig
 from app.normalization import canonical_url
 
 ATS = {"greenhouse", "lever", "ashby", "smartrecruiters"}
+PUBLIC_FEEDS = {"arbeitnow", "jobicy", "remotive", "himalayas"}
 RESTRICTED = {"linkedin.com", "indeed.com", "naukri.com"}
 
 
 def check_access(source) -> None:
     if not source.enabled or source.access_policy in {"pending", "denied"}:
         raise ValueError("SOURCE_NOT_AUTHORIZED")
-    if source.provider in ATS:
+    if source.provider in ATS | PUBLIC_FEEDS:
         if source.access_policy not in {"public_api", "permitted"}:
             raise ValueError("PUBLIC_API_PERMISSION_REQUIRED")
     elif source.access_policy != "permitted" or not source.permission_notes:

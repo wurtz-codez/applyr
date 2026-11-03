@@ -11,7 +11,7 @@ from app.ingestion.registry import CONNECTORS
 from app.models import Company, IngestionSource, JobSource
 
 
-def register_source(session, payload):
+def register_source(session, payload, *, commit=True):
     values = payload.model_dump()
     website = values.pop("website")
     provider = values["provider"]
@@ -53,6 +53,9 @@ def register_source(session, payload):
     source = IngestionSource(company_id=company.id, **values)
     validate_config(source_config(source))
     session.add(source)
+    if not commit:
+        session.flush()
+        return source
     try:
         session.commit()
     except IntegrityError:
@@ -82,9 +85,11 @@ def source_response(session, source):
             "next_fetch_at",
             "failure_count",
             "health",
+            "local_overrides",
             "active_run_id",
         )
     }
+    values["managed_by_bundle"] = source.seed_defaults is not None
     values["job_count"] = (
         session.scalar(
             select(func.count()).select_from(JobSource).where(JobSource.source_id == source.id)

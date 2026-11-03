@@ -138,12 +138,20 @@ export default async function JobDetailPage({
             <dl className="job-facts">
               <div>
                 <dt>Source</dt>
-                <dd>{providerLabel(job.primary_source)}</dd>
+                <dd><a href={job.sources.find((source) => source.provider === job.primary_source)?.source_url ?? originalUrl} target="_blank" rel="noopener noreferrer">{providerLabel(job.primary_source)} ↗</a></dd>
               </div>
               <div>
                 <dt>{postedLabel}</dt>
                 <dd>{formatDate(published)}</dd>
               </div>
+              <div>
+                <dt>India location</dt>
+                <dd>{job.india_status === "CONFIRMED" ? "Confirmed" : job.india_status === "NOT_ELIGIBLE" ? "Outside India" : "Uncertain"}</dd>
+              </div>
+              {job.eligibility_evaluated_at && <div>
+                <dt>Location checked</dt>
+                <dd>{formatDateTime(job.eligibility_evaluated_at)}</dd>
+              </div>}
               <div>
                 <dt>First seen</dt>
                 <dd>{formatDateTime(job.first_seen_at)}</dd>

@@ -40,7 +40,12 @@ def find_job(session, item, source):
     urls = sorted({canonical_url(u) for u in (item.job_url, item.apply_url) if u})
     # Cross-source workers serialize identity resolution inside the same DB transaction.
     keys = urls + ([key] if key else [])
-    if item.requisition_id:
+    if item.requisition_id and source.source_type not in {
+        "arbeitnow",
+        "jobicy",
+        "remotive",
+        "himalayas",
+    }:
         keys.append(f"req:{source.company_id}:{item.requisition_id}")
     for value in sorted(keys):
         session.execute(
@@ -53,6 +58,20 @@ def find_job(session, item, source):
     )
     if occurrence:
         return session.get(Job, occurrence.job_id), occurrence, key
+    # Adopt a legacy feed occurrence instead of manufacturing another appearance.
+    if source.provider in {"arbeitnow", "jobicy", "remotive"}:
+        occurrence = session.scalar(
+            select(JobSource)
+            .where(
+                JobSource.source_id.is_(None),
+                JobSource.provider == source.provider,
+                JobSource.external_id == item.external_id,
+            )
+            .limit(1)
+        )
+        if occurrence:
+            occurrence.source_id = source.id
+            return session.get(Job, occurrence.job_id), occurrence, key
     if key:
         row = session.scalar(select(Job).where(Job.ats_identity == key))
         if row:
@@ -64,8 +83,22 @@ def find_job(session, item, source):
         select(Job).where(or_(Job.canonical_url.in_(urls), Job.apply_url.in_(urls)))
     )
     if row:
-        return row, None, key
-    if item.requisition_id:
+        # A shared application form is weaker evidence than two distinct requisitions
+        # on the same verified ATS board. Keep those openings separate.
+        conflict = (
+            key
+            and row.ats_identity
+            and key.rsplit(":", 1)[0] == row.ats_identity.rsplit(":", 1)[0]
+            and key != row.ats_identity
+        )
+        if not conflict:
+            return row, None, key
+    if item.requisition_id and source.source_type not in {
+        "arbeitnow",
+        "jobicy",
+        "remotive",
+        "himalayas",
+    }:
         row = session.scalar(
             select(Job).where(
                 Job.company_id == source.company_id, Job.requisition_id == item.requisition_id

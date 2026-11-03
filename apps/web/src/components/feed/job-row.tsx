@@ -24,10 +24,11 @@ export function JobRow({
   const tags = job.tags.slice(0, 4);
   const extraTags = job.tags.length - tags.length;
   const isSearch = job.listing_type === "SEARCH_RESULT";
+  const detailHref = `/jobs/${job.id}${returnQuery ? `?${returnQuery}` : ""}`;
+  const sourceUrl = job.sources.find((source) => source.provider === job.primary_source)?.source_url ?? job.original_job_url ?? job.canonical_url;
 
   return (
-    <Link
-      href={`/jobs/${job.id}${returnQuery ? `?${returnQuery}` : ""}`}
+    <article
       className={`feed-job${isSearch ? " is-search" : ""}`}
     >
       <span className="feed-job-index" aria-hidden="true">
@@ -39,20 +40,20 @@ export function JobRow({
           <span className="feed-job-company">
             {job.company || (isSearch ? "Search result" : "Company not listed")}
           </span>
-          <span className="feed-job-source">{providerLabel(job.primary_source)}</span>
+          <a className="feed-job-source" href={sourceUrl} target="_blank" rel="noopener noreferrer">{providerLabel(job.primary_source)} ↗</a>
           {isNew && <span className="feed-job-new">New</span>}
           {isSearch && <span className="feed-job-new">Search page</span>}
           {job.match_score != null && <span className="feed-job-new">Match {job.match_score}/100</span>}
         </div>
 
-        <h2>{job.title}</h2>
+        <h2><Link href={detailHref}>{job.title}</Link></h2>
 
         {job.description_excerpt && (
           <p className="feed-job-excerpt">{job.description_excerpt}</p>
         )}
 
         <div className="feed-job-meta">
-          <span>{job.india_eligible === true ? "India eligible" : job.india_eligible === false ? "Other geography" : "India eligibility uncertain"}</span>
+          <span>{job.india_eligible === true ? "India location confirmed" : job.india_eligible === false ? "Other geography" : "India location uncertain"}</span>
           {job.experience_min != null && <span>{job.experience_min}{job.experience_max != null ? `–${job.experience_max}` : "+"} years required</span>}
           {job.status === "closed" && <span>Closed</span>}
           <span>{job.location || "Location unknown"}</span>
@@ -80,8 +81,8 @@ export function JobRow({
       <div className="feed-job-side">
         <span className="feed-job-date">{job.published_at ? "Posted" : "Discovered"} {formatRelativeDate(published)}</span>
         <span className="feed-job-date">Seen {formatRelativeDate(job.last_seen_at)}</span>
-        <span className="feed-job-arrow" aria-hidden="true">↗</span>
+        <Link href={detailHref} className="feed-job-arrow" aria-label={`View ${job.title}`}>↗</Link>
       </div>
-    </Link>
+    </article>
   );
 }

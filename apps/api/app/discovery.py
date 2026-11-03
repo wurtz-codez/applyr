@@ -4,13 +4,15 @@ from datetime import UTC, timedelta
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import delete, func, or_, select, text, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_engine
 from app.models import (
     DiscoveryRun,
+    IngestionSource,
     Job,
     JobSource,
     JobTag,
@@ -96,6 +98,10 @@ def store_jobs(session, provider, items):
     for item in items:
         unique[item.canonical_url] = item
     for item in unique.values():
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+            {"key": item.canonical_url},
+        )
         row = session.scalar(select(Job).where(Job.canonical_url == item.canonical_url))
         digest = fingerprint(item)
         write = row is None
@@ -117,6 +123,12 @@ def store_jobs(session, provider, items):
             ).items():
                 setattr(row, name, value)
             row.content_hash, row.primary_source = digest, provider
+            row.normalization_version = 0
+            if item.listing_type == "JOB_POSTING":
+                from app.ingestion.backfill import normalize_existing
+
+                row.normalized_json = None
+                normalize_existing(row)
         row.last_seen_at = now()
         session.flush()
         if write:
@@ -126,8 +138,17 @@ def store_jobs(session, provider, items):
             select(JobSource).where(JobSource.job_id == row.id, JobSource.provider == provider)
         )
         if source is None:
-            source = JobSource(job_id=row.id, provider=provider)
+            source = JobSource(job_id=row.id, provider=provider, source_url=item.source_url)
             session.add(source)
+        source.last_verified_at = now()
+        source.active = True
+        registry_id = session.scalar(
+            select(IngestionSource.id).where(
+                IngestionSource.provider == provider, IngestionSource.board_id == "public"
+            )
+        )
+        if registry_id:
+            source.source_id = registry_id
         source.source_url, source.external_id, source.last_seen_at = (
             item.source_url,
             item.external_id,
@@ -179,7 +200,15 @@ def execute_run(run_id: UUID | str, engine=None):
                 if lock.run_id != row.id or lock.expires_at.replace(tzinfo=UTC) < now():
                     finish(session, row, "INTERRUPTED", "LEASE_EXPIRED")
                     return
-                state = session.get(SourceState, source_key(provider, row.query))
+                state_key = source_key(provider, row.query)
+                session.execute(
+                    insert(SourceState)
+                    .values(key=state_key, provider=provider)
+                    .on_conflict_do_nothing()
+                )
+                state = session.scalar(
+                    select(SourceState).where(SourceState.key == state_key).with_for_update()
+                )
                 if (
                     state
                     and state.next_allowed_at
@@ -193,9 +222,6 @@ def execute_run(run_id: UUID | str, engine=None):
                         next_refresh_at=state.next_allowed_at,
                     )
                 else:
-                    if state is None:
-                        state = SourceState(key=source_key(provider, row.query), provider=provider)
-                        session.add(state)
                     if provider == "tavily":
                         attempts = (
                             session.scalar(

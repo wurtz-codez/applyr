@@ -55,7 +55,10 @@ def test_greenhouse_parsing_incremental_descriptions():
         calls.append(str(request.url))
         item = FIXTURE["greenhouse"]
         return httpx.Response(
-            200, json={"jobs": [item]} if request.url.path.endswith("/jobs") else item
+            200,
+            json={"jobs": [{k: v for k, v in item.items() if k != "content"}]}
+            if request.url.path.endswith("/jobs")
+            else item,
         )
 
     first = run_connector(Greenhouse, "greenhouse", handler)
@@ -85,7 +88,7 @@ def test_lever_parse_and_pagination():
     assert first.next_cursor == "100" and second.next_cursor is None
     job = first.jobs[0]
     assert job.apply_url.endswith("/apply") and job.experience.min_years == 1
-    assert job.experience.max_years is None and job.location.india_eligible is None
+    assert job.experience.max_years is None and job.location.india_eligible is True
     assert "Requirements" in job.description and job.posted_at is None
 
 

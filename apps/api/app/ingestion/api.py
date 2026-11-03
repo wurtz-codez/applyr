@@ -10,7 +10,15 @@ from app.ingestion.engine import queue_run
 from app.ingestion.matching import ProfileInput
 from app.ingestion.schemas import SourceCreate, SourcePatch
 from app.ingestion.service import register_source, run_response, source_response
-from app.models import IngestionRun, IngestionSource, Job, JobSource, MatchingProfile, now
+from app.models import (
+    IngestionRun,
+    IngestionSource,
+    Job,
+    JobSource,
+    MaintenanceState,
+    MatchingProfile,
+    now,
+)
 
 router = APIRouter()
 
@@ -96,8 +104,11 @@ def source_detail(source_id: UUID, session: Session = Depends(get_session)):
 @router.patch("/sources/{source_id}")
 def patch_source(source_id: UUID, payload: SourcePatch, session: Session = Depends(get_session)):
     source = source_or_404(session, source_id)
+    overrides = set(source.local_overrides or [])
     for key, value in payload.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(source, key, value)
+        overrides.add(key)
+    source.local_overrides = sorted(overrides)
     session.commit()
     return source_response(session, source)
 
@@ -180,6 +191,23 @@ def stats(session: Session = Depends(get_session)):
         select(IngestionRun.status, func.count()).group_by(IngestionRun.status)
     )
     return {
+        "eligibility": dict(
+            session.execute(
+                select(Job.india_status, func.count())
+                .where(Job.listing_type == "JOB_POSTING")
+                .group_by(Job.india_status)
+            ).all()
+        ),
+        "maintenance": [
+            {
+                "key": m.key,
+                "last_success_at": m.last_success_at,
+                "next_run_at": m.next_run_at,
+                "failure_count": m.failure_count,
+                "details": m.details,
+            }
+            for m in session.scalars(select(MaintenanceState))
+        ],
         "source_health": dict(health.all()),
         "run_status": dict(statuses.all()),
         "jobs": session.scalar(select(func.count()).select_from(Job)),

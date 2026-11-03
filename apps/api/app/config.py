@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     jobspy_enabled: bool = False
     browser_enabled: bool = False
+    ingestion_bootstrap_enabled: bool = True
+    ingestion_discovery_enabled: bool = True
+    ingestion_backfill_batch_size: int = Field(default=250, ge=1, le=2000)
     ingestion_max_pages: int = Field(default=100, ge=1, le=500)
     ingestion_max_state_mb: int = Field(default=32, ge=1, le=256)
 

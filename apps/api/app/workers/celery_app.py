@@ -21,11 +21,12 @@ celery.conf.update(
         "ingestion.browser": {"queue": "browser"},
         "ingestion.schedule": {"queue": "ingestion"},
         "ingestion.freshness": {"queue": "ingestion"},
+        "ingestion.maintenance": {"queue": "ingestion"},
         "matching.refresh": {"queue": "ingestion"},
     },
     beat_schedule={
         "due-sources": {"task": "ingestion.schedule", "schedule": 60.0},
-        "job-freshness": {"task": "ingestion.freshness", "schedule": 86400.0},
+        "catalog-maintenance": {"task": "ingestion.maintenance", "schedule": 60.0},
         "profile-matching": {
             "task": "matching.refresh",
             "schedule": 60.0,

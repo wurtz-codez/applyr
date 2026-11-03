@@ -1,0 +1,1351 @@
+[
+  {
+    "company": "ClickHouse",
+    "ats_provider": "ashby",
+    "board_token": "clickhouse",
+    "source_url": "https://jobs.ashbyhq.com/clickhouse",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:38.087895+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/clickhouse",
+      "http_status": 200,
+      "india_jobs_observed": 10,
+      "evidence_location": "India",
+      "evidence_job_url": "https://jobs.ashbyhq.com/clickhouse/6c74387f-2330-4005-b711-f622925bc1f2"
+    }
+  },
+  {
+    "company": "Composio",
+    "ats_provider": "ashby",
+    "board_token": "composio",
+    "source_url": "https://jobs.ashbyhq.com/composio",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:42.893352+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/composio",
+      "http_status": 200,
+      "india_jobs_observed": 4,
+      "evidence_location": "Bangalore",
+      "evidence_job_url": "https://jobs.ashbyhq.com/composio/74cf1b48-86e9-4454-8c4e-cb2038ed0049"
+    }
+  },
+  {
+    "company": "Cursor",
+    "ats_provider": "ashby",
+    "board_token": "cursor",
+    "source_url": "https://jobs.ashbyhq.com/cursor",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:14.502191+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/cursor",
+      "http_status": 200,
+      "india_jobs_observed": 5,
+      "evidence_location": "Bengaluru",
+      "evidence_job_url": "https://jobs.ashbyhq.com/cursor/919b3d00-fef8-4038-8b71-165fae5d54e7"
+    }
+  },
+  {
+    "company": "Deepgram",
+    "ats_provider": "ashby",
+    "board_token": "deepgram",
+    "source_url": "https://jobs.ashbyhq.com/deepgram",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:31.754628+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/deepgram",
+      "http_status": 200,
+      "india_jobs_observed": 2,
+      "evidence_location": "India",
+      "evidence_job_url": "https://jobs.ashbyhq.com/deepgram/07f98531-7a03-4481-a7ff-863fb07dfccd"
+    }
+  },
+  {
+    "company": "ElevenLabs",
+    "ats_provider": "ashby",
+    "board_token": "elevenlabs",
+    "source_url": "https://jobs.ashbyhq.com/elevenlabs",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:10.194705+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/elevenlabs",
+      "http_status": 200,
+      "india_jobs_observed": 4,
+      "evidence_location": "India",
+      "evidence_job_url": "https://jobs.ashbyhq.com/elevenlabs/a571b8e4-8176-4e31-aab6-2287ee810236"
+    }
+  },
+  {
+    "company": "Notion",
+    "ats_provider": "ashby",
+    "board_token": "notion",
+    "source_url": "https://jobs.ashbyhq.com/notion",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:06.303704+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/notion",
+      "http_status": 200,
+      "india_jobs_observed": 2,
+      "evidence_location": "Hyderabad, India",
+      "evidence_job_url": "https://jobs.ashbyhq.com/notion/3339493a-ee21-49f3-ab09-e1f8ba8f1b92"
+    }
+  },
+  {
+    "company": "OpenAI",
+    "ats_provider": "ashby",
+    "board_token": "openai",
+    "source_url": "https://jobs.ashbyhq.com/openai",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:46.094496+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/openai",
+      "http_status": 200,
+      "india_jobs_observed": 6,
+      "evidence_location": "Delhi, India",
+      "evidence_job_url": "https://jobs.ashbyhq.com/openai/d085d2ec-0256-4ecf-b493-81ea34942e51"
+    }
+  },
+  {
+    "company": "Sarvam AI",
+    "ats_provider": "ashby",
+    "board_token": "sarvam",
+    "source_url": "https://jobs.ashbyhq.com/sarvam",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:49.838981+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/sarvam",
+      "http_status": 200,
+      "india_jobs_observed": 48,
+      "evidence_location": "Delhi",
+      "evidence_job_url": "https://jobs.ashbyhq.com/sarvam/c0406fe0-c8c0-44aa-aa3e-b879f2bf1049"
+    }
+  },
+  {
+    "company": "Temporal",
+    "ats_provider": "ashby",
+    "board_token": "temporal",
+    "source_url": "https://jobs.ashbyhq.com/temporal",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:54.199811+00:00",
+      "endpoint": "https://api.ashbyhq.com/posting-api/job-board/temporal",
+      "http_status": 200,
+      "india_jobs_observed": 2,
+      "evidence_location": "Bengaluru, Karnataka",
+      "evidence_job_url": "https://jobs.ashbyhq.com/temporal/db6c81bf-1af3-4792-9473-1a8ee4518a06"
+    }
+  },
+  {
+    "company": "6sense",
+    "ats_provider": "greenhouse",
+    "board_token": "6sense",
+    "source_url": "https://boards.greenhouse.io/6sense",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:53:37.113167+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/6sense/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 7,
+      "evidence_location": "Bengaluru, Karnataka, India  ",
+      "evidence_job_url": "https://boards.greenhouse.io/6sense/jobs/8191811?gh_jid=8191811"
+    }
+  },
+  {
+    "company": "Abnormal AI",
+    "ats_provider": "greenhouse",
+    "board_token": "abnormalsecurity",
+    "source_url": "https://boards.greenhouse.io/abnormalsecurity",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:53:39.798513+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/abnormalsecurity/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 11,
+      "evidence_location": "Hybrid - Bangalore, India  ",
+      "evidence_job_url": "https://abnormal.ai/careers/jobs/8016920003?gh_jid=8016920003"
+    }
+  },
+  {
+    "company": "Agoda",
+    "ats_provider": "greenhouse",
+    "board_token": "agoda",
+    "source_url": "https://boards.greenhouse.io/agoda",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:53:51.783430+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/agoda/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 10,
+      "evidence_location": "Gurugram  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/agoda/jobs/8255575"
+    }
+  },
+  {
+    "company": "Airbnb",
+    "ats_provider": "greenhouse",
+    "board_token": "airbnb",
+    "source_url": "https://boards.greenhouse.io/airbnb",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:24.254063+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/airbnb/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 12,
+      "evidence_location": "Gurugram, India  ",
+      "evidence_job_url": "https://careers.airbnb.com/positions/8327789?gh_jid=8327789"
+    }
+  },
+  {
+    "company": "AlphaSense",
+    "ats_provider": "greenhouse",
+    "board_token": "alphasense",
+    "source_url": "https://boards.greenhouse.io/alphasense",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:37.941886+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/alphasense/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 31,
+      "evidence_location": "Remote - India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/alphasense/jobs/8634067002"
+    }
+  },
+  {
+    "company": "Anaplan",
+    "ats_provider": "greenhouse",
+    "board_token": "anaplan",
+    "source_url": "https://boards.greenhouse.io/anaplan",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:53:01.895633+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/anaplan/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 58,
+      "evidence_location": "Gurugram, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/anaplan/jobs/8388068002"
+    }
+  },
+  {
+    "company": "Aviatrix",
+    "ats_provider": "greenhouse",
+    "board_token": "aviatrix",
+    "source_url": "https://boards.greenhouse.io/aviatrix",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:52:51.410752+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/aviatrix/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 7,
+      "evidence_location": "Bengaluru, Karnataka, India (APAC)  ",
+      "evidence_job_url": "https://aviatrix.com/careers/?gh_jid=4644128005"
+    }
+  },
+  {
+    "company": "Cockroach Labs",
+    "ats_provider": "greenhouse",
+    "board_token": "cockroachlabs",
+    "source_url": "https://boards.greenhouse.io/cockroachlabs",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:25.578370+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 1,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://www.cockroachlabs.com/careers/job/?gh_jid=7422578"
+    }
+  },
+  {
+    "company": "Coinbase",
+    "ats_provider": "greenhouse",
+    "board_token": "coinbase",
+    "source_url": "https://boards.greenhouse.io/coinbase",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:15.026537+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/coinbase/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 12,
+      "evidence_location": "Remote - India  ",
+      "evidence_job_url": "https://www.coinbase.com/careers/positions/7606826?gh_jid=7606826"
+    }
+  },
+  {
+    "company": "Commvault",
+    "ats_provider": "greenhouse",
+    "board_token": "commvault",
+    "source_url": "https://boards.greenhouse.io/commvault",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:48.863153+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/commvault/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 13,
+      "evidence_location": "Telangana, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/commvault/jobs/5417104008"
+    }
+  },
+  {
+    "company": "Contentstack",
+    "ats_provider": "greenhouse",
+    "board_token": "contentstack",
+    "source_url": "https://boards.greenhouse.io/contentstack",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:53:11.039267+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/contentstack/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 6,
+      "evidence_location": "Chennai  ",
+      "evidence_job_url": "https://www.contentstack.com/company/careers/8012782003?gh_jid=8012782003"
+    }
+  },
+  {
+    "company": "Coursera",
+    "ats_provider": "greenhouse",
+    "board_token": "coursera",
+    "source_url": "https://boards.greenhouse.io/coursera",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:27.295971+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/coursera/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 6,
+      "evidence_location": "India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/coursera/jobs/6220312004"
+    }
+  },
+  {
+    "company": "Databricks",
+    "ats_provider": "greenhouse",
+    "board_token": "databricks",
+    "source_url": "https://boards.greenhouse.io/databricks",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:20.329072+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/databricks/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 87,
+      "evidence_location": "Bengaluru, India; Mumbai, India  ",
+      "evidence_job_url": "https://databricks.com/company/careers/open-positions/job?gh_jid=6918763002"
+    }
+  },
+  {
+    "company": "Datadog",
+    "ats_provider": "greenhouse",
+    "board_token": "datadog",
+    "source_url": "https://boards.greenhouse.io/datadog",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:53:07.157243+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/datadog/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 8,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://careers.datadoghq.com/detail/6512321/?gh_jid=6512321"
+    }
+  },
+  {
+    "company": "Druva",
+    "ats_provider": "greenhouse",
+    "board_token": "druva",
+    "source_url": "https://boards.greenhouse.io/druva",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:44.765743+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/druva/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 12,
+      "evidence_location": "Pune, Maharashtra, India  ",
+      "evidence_job_url": "https://www.druva.com/why-druva/explore/careers/jobs/8908468002/?gh_jid=8908468002"
+    }
+  },
+  {
+    "company": "Duolingo",
+    "ats_provider": "greenhouse",
+    "board_token": "duolingo",
+    "source_url": "https://boards.greenhouse.io/duolingo",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:29.911617+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/duolingo/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 1,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://careers.duolingo.com/jobs/8883563002?gh_jid=8883563002"
+    }
+  },
+  {
+    "company": "EarnIn",
+    "ats_provider": "greenhouse",
+    "board_token": "earnin",
+    "source_url": "https://boards.greenhouse.io/earnin",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:54:44.622736+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/earnin/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 6,
+      "evidence_location": "Bengaluru, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/earnin/jobs/8348302"
+    }
+  },
+  {
+    "company": "Elastic",
+    "ats_provider": "greenhouse",
+    "board_token": "elastic",
+    "source_url": "https://boards.greenhouse.io/elastic",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:22.943093+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/elastic/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 16,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://jobs.elastic.co/jobs?gh_jid=8314336&gh_jid=8314336"
+    }
+  },
+  {
+    "company": "Fivetran",
+    "ats_provider": "greenhouse",
+    "board_token": "fivetran",
+    "source_url": "https://boards.greenhouse.io/fivetran",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:56.441977+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/fivetran/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 22,
+      "evidence_location": "Bengaluru, Karnataka, India, APAC  ",
+      "evidence_job_url": "https://www.fivetran.com/careers/job?gh_jid=7818366003"
+    }
+  },
+  {
+    "company": "Fresh Prints",
+    "ats_provider": "greenhouse",
+    "board_token": "freshprints",
+    "source_url": "https://boards.greenhouse.io/freshprints",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:35.274257+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/freshprints/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 22,
+      "evidence_location": "India (Remote)  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/freshprints/jobs/5809454004"
+    }
+  },
+  {
+    "company": "GitLab",
+    "ats_provider": "greenhouse",
+    "board_token": "gitlab",
+    "source_url": "https://boards.greenhouse.io/gitlab",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:30.159919+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/gitlab/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 33,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/gitlab/jobs/8864819002"
+    }
+  },
+  {
+    "company": "Grafana Labs",
+    "ats_provider": "greenhouse",
+    "board_token": "grafanalabs",
+    "source_url": "https://boards.greenhouse.io/grafanalabs",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:27.559900+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/grafanalabs/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 2,
+      "evidence_location": "India (Remote)  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6112305004"
+    }
+  },
+  {
+    "company": "Groww",
+    "ats_provider": "greenhouse",
+    "board_token": "groww",
+    "source_url": "https://boards.greenhouse.io/groww",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:52.335749+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/groww/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 9,
+      "evidence_location": "Bengaluru-VTP, India  ",
+      "evidence_job_url": "https://job-boards.eu.greenhouse.io/groww/jobs/4970739101"
+    }
+  },
+  {
+    "company": "HackerRank",
+    "ats_provider": "greenhouse",
+    "board_token": "hackerrank",
+    "source_url": "https://boards.greenhouse.io/hackerrank",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:42.521755+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/hackerrank/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 16,
+      "evidence_location": "Onsite in Bangalore  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/hackerrank/jobs/8281055"
+    }
+  },
+  {
+    "company": "Harness ",
+    "ats_provider": "greenhouse",
+    "board_token": "harnessinc",
+    "source_url": "https://boards.greenhouse.io/harnessinc",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:52:54.022350+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/harnessinc/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 13,
+      "evidence_location": "Bengaluru, Karnataka, India  ",
+      "evidence_job_url": "https://www.harness.io/company/jobs/apply?gh_jid=5252771007&gh_jid=5252771007"
+    }
+  },
+  {
+    "company": "Jumio",
+    "ats_provider": "greenhouse",
+    "board_token": "jumio",
+    "source_url": "https://boards.greenhouse.io/jumio",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:40.533170+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/jumio/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 7,
+      "evidence_location": "Bangalore  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/jumio/jobs/4665626005"
+    }
+  },
+  {
+    "company": "Mixpanel",
+    "ats_provider": "greenhouse",
+    "board_token": "mixpanel",
+    "source_url": "https://boards.greenhouse.io/mixpanel",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:09.597155+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/mixpanel/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 4,
+      "evidence_location": "Bengaluru, Karnataka, India (Hybrid)  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/mixpanel/jobs/8198286"
+    }
+  },
+  {
+    "company": "MongoDB",
+    "ats_provider": "greenhouse",
+    "board_token": "mongodb",
+    "source_url": "https://boards.greenhouse.io/mongodb",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:24.287041+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/mongodb/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 82,
+      "evidence_location": "Bengaluru  ",
+      "evidence_job_url": "https://www.mongodb.com/careers/job/?gh_jid=7318466"
+    }
+  },
+  {
+    "company": "Neo4j",
+    "ats_provider": "greenhouse",
+    "board_token": "neo4j",
+    "source_url": "https://boards.greenhouse.io/neo4j",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:52.908265+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/neo4j/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 5,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://boards.greenhouse.io/neo4j/jobs/4714409006?gh_jid=4714409006"
+    }
+  },
+  {
+    "company": "Netskope",
+    "ats_provider": "greenhouse",
+    "board_token": "netskope",
+    "source_url": "https://boards.greenhouse.io/netskope",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:49.855528+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/netskope/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 19,
+      "evidence_location": "India  ",
+      "evidence_job_url": "https://www.netskope.com/company/careers/open-positions/?gh_jid=8074121"
+    }
+  },
+  {
+    "company": "New Relic",
+    "ats_provider": "greenhouse",
+    "board_token": "newrelic",
+    "source_url": "https://boards.greenhouse.io/newrelic",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:24.897744+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/newrelic/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 1,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/newrelic/jobs/5395062008"
+    }
+  },
+  {
+    "company": "Okta",
+    "ats_provider": "greenhouse",
+    "board_token": "okta",
+    "source_url": "https://boards.greenhouse.io/okta",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:39.330666+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/okta/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 107,
+      "evidence_location": "Bengaluru, India  ",
+      "evidence_job_url": "https://www.okta.com/company/careers/opportunity/8288466?gh_jid=8288466"
+    }
+  },
+  {
+    "company": "Pure Storage",
+    "ats_provider": "greenhouse",
+    "board_token": "purestorage",
+    "source_url": "https://boards.greenhouse.io/purestorage",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:16.215673+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/purestorage/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 64,
+      "evidence_location": "Bangalore, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/purestorage/jobs/8305829"
+    }
+  },
+  {
+    "company": "Rubrik",
+    "ats_provider": "greenhouse",
+    "board_token": "rubrik",
+    "source_url": "https://boards.greenhouse.io/rubrik",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:13.627735+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/rubrik/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 33,
+      "evidence_location": "Mumbai  ",
+      "evidence_job_url": "https://www.rubrik.com/company/careers/departments/job.8242348?gh_jid=8242348"
+    }
+  },
+  {
+    "company": "SingleStore",
+    "ats_provider": "greenhouse",
+    "board_token": "singlestore",
+    "source_url": "https://boards.greenhouse.io/singlestore",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:48.549479+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/singlestore/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 9,
+      "evidence_location": "Bangalore  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/singlestore/jobs/8052299"
+    }
+  },
+  {
+    "company": "Starburst",
+    "ats_provider": "greenhouse",
+    "board_token": "starburst",
+    "source_url": "https://boards.greenhouse.io/starburst",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:58.120622+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/starburst/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 6,
+      "evidence_location": "India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/starburst/jobs/5416975008"
+    }
+  },
+  {
+    "company": "Stripe",
+    "ats_provider": "greenhouse",
+    "board_token": "stripe",
+    "source_url": "https://boards.greenhouse.io/stripe",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:13.716588+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/stripe/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 46,
+      "evidence_location": "Bangalore  ",
+      "evidence_job_url": "https://stripe.com/jobs/search?gh_jid=8247127"
+    }
+  },
+  {
+    "company": "Sumo Logic",
+    "ats_provider": "greenhouse",
+    "board_token": "sumologic",
+    "source_url": "https://boards.greenhouse.io/sumologic",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:23.520706+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/sumologic/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 6,
+      "evidence_location": "Noida, Uttar Pradesh, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/sumologic/jobs/8089130"
+    }
+  },
+  {
+    "company": "Toast",
+    "ats_provider": "greenhouse",
+    "board_token": "toast",
+    "source_url": "https://boards.greenhouse.io/toast",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:31.286938+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/toast/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 19,
+      "evidence_location": "Chennai  ",
+      "evidence_job_url": "https://careers.toasttab.com/jobs?gh_jid=8230746"
+    }
+  },
+  {
+    "company": "Twilio",
+    "ats_provider": "greenhouse",
+    "board_token": "twilio",
+    "source_url": "https://boards.greenhouse.io/twilio",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:38.011992+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/twilio/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 11,
+      "evidence_location": "Remote - India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/twilio/jobs/7781659"
+    }
+  },
+  {
+    "company": "Workato",
+    "ats_provider": "greenhouse",
+    "board_token": "workato",
+    "source_url": "https://boards.greenhouse.io/workato",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:41.997210+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/workato/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 1,
+      "evidence_location": "Hyderabad, India  ",
+      "evidence_job_url": "https://www.workato.com/careers?gh_jid=8570123002#open-roles"
+    }
+  },
+  {
+    "company": "Yugabyte",
+    "ats_provider": "greenhouse",
+    "board_token": "yugabyte",
+    "source_url": "https://boards.greenhouse.io/yugabyte",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:26.874357+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/yugabyte/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 3,
+      "evidence_location": "India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/yugabyte/jobs/4679058006"
+    }
+  },
+  {
+    "company": "Zenoti",
+    "ats_provider": "greenhouse",
+    "board_token": "zenoti",
+    "source_url": "https://boards.greenhouse.io/zenoti",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:38.590685+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/zenoti/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 35,
+      "evidence_location": "Hyderabad, Telangana, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/zenoti/jobs/7513859003"
+    }
+  },
+  {
+    "company": "Zscaler",
+    "ats_provider": "greenhouse",
+    "board_token": "zscaler",
+    "source_url": "https://boards.greenhouse.io/zscaler",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:51.222012+00:00",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/zscaler/jobs",
+      "http_status": 200,
+      "india_jobs_observed": 78,
+      "evidence_location": "Remote - Tamil Nadu, India  ",
+      "evidence_job_url": "https://job-boards.greenhouse.io/zscaler/jobs/5258577007"
+    }
+  },
+  {
+    "company": "CRED",
+    "ats_provider": "lever",
+    "board_token": "cred",
+    "source_url": "https://jobs.lever.co/cred",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:07.901358+00:00",
+      "endpoint": "https://api.lever.co/v0/postings/cred",
+      "http_status": 200,
+      "india_jobs_observed": 13,
+      "evidence_location": "hyderabad",
+      "evidence_job_url": "https://jobs.lever.co/cred/aa98a938-af3a-45f5-851d-966b2b5bad33"
+    }
+  },
+  {
+    "company": "HighLevel",
+    "ats_provider": "lever",
+    "board_token": "gohighlevel",
+    "source_url": "https://jobs.lever.co/gohighlevel",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:46:46.544707+00:00",
+      "endpoint": "https://api.lever.co/v0/postings/gohighlevel",
+      "http_status": 200,
+      "india_jobs_observed": 73,
+      "evidence_location": "India",
+      "evidence_job_url": "https://jobs.lever.co/gohighlevel/48265533-1a1c-405b-a805-7dae16ce8c16"
+    }
+  },
+  {
+    "company": "JumpCloud",
+    "ats_provider": "lever",
+    "board_token": "jumpcloud",
+    "source_url": "https://jobs.lever.co/jumpcloud",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:00.915681+00:00",
+      "endpoint": "https://api.lever.co/v0/postings/jumpcloud",
+      "http_status": 200,
+      "india_jobs_observed": 20,
+      "evidence_location": "Bangalore, India - Remote",
+      "evidence_job_url": "https://jobs.lever.co/jumpcloud/5021c758-9273-43f3-ac21-8d1b4fdb57fa"
+    }
+  },
+  {
+    "company": "Paytm",
+    "ats_provider": "lever",
+    "board_token": "paytm",
+    "source_url": "https://jobs.lever.co/paytm",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:05.123697+00:00",
+      "endpoint": "https://api.lever.co/v0/postings/paytm",
+      "http_status": 200,
+      "india_jobs_observed": 73,
+      "evidence_location": "Noida, Uttar Pradesh",
+      "evidence_job_url": "https://jobs.lever.co/paytm/feb33510-9ea7-4b69-b69d-87a41f7c2c2c"
+    }
+  },
+  {
+    "company": "Zeta",
+    "ats_provider": "lever",
+    "board_token": "zeta",
+    "source_url": "https://jobs.lever.co/zeta",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:51:16.125495+00:00",
+      "endpoint": "https://api.lever.co/v0/postings/zeta",
+      "http_status": 200,
+      "india_jobs_observed": 25,
+      "evidence_location": "Bangalore - WF",
+      "evidence_job_url": "https://jobs.lever.co/zeta/42c3b097-4b5c-48b6-83f6-04f09f1cab56"
+    }
+  },
+  {
+    "company": "Arista Networks",
+    "ats_provider": "smartrecruiters",
+    "board_token": "AristaNetworks",
+    "source_url": "https://careers.smartrecruiters.com/AristaNetworks",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:23.553044+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/AristaNetworks/postings",
+      "http_status": 200,
+      "india_jobs_observed": 25,
+      "evidence_location": " Pune in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/AristaNetworks/postings/744000159085630"
+    }
+  },
+  {
+    "company": "Bosch Group",
+    "ats_provider": "smartrecruiters",
+    "board_token": "BoschGroup",
+    "source_url": "https://careers.smartrecruiters.com/BoschGroup",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:53.186451+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings",
+      "http_status": 200,
+      "india_jobs_observed": 100,
+      "evidence_location": " bangalore in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings/744000159357130"
+    }
+  },
+  {
+    "company": "Entain",
+    "ats_provider": "smartrecruiters",
+    "board_token": "Entain",
+    "source_url": "https://careers.smartrecruiters.com/Entain",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:29.714437+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/Entain/postings",
+      "http_status": 200,
+      "india_jobs_observed": 1,
+      "evidence_location": " Hyderabad in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/Entain/postings/744000159305230"
+    }
+  },
+  {
+    "company": "Eurofins",
+    "ats_provider": "smartrecruiters",
+    "board_token": "Eurofins",
+    "source_url": "https://careers.smartrecruiters.com/Eurofins",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:10.032542+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/Eurofins/postings",
+      "http_status": 200,
+      "india_jobs_observed": 100,
+      "evidence_location": " Bengaluru in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/Eurofins/postings/744000159384443"
+    }
+  },
+  {
+    "company": "Experian",
+    "ats_provider": "smartrecruiters",
+    "board_token": "Experian",
+    "source_url": "https://careers.smartrecruiters.com/Experian",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:03.903164+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/Experian/postings",
+      "http_status": 200,
+      "india_jobs_observed": 37,
+      "evidence_location": " Mumbai in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/Experian/postings/744000159304482"
+    }
+  },
+  {
+    "company": "Freshworks",
+    "ats_provider": "smartrecruiters",
+    "board_token": "Freshworks",
+    "source_url": "https://careers.smartrecruiters.com/Freshworks",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:51.532906+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/Freshworks/postings",
+      "http_status": 200,
+      "india_jobs_observed": 35,
+      "evidence_location": " Chennai in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/Freshworks/postings/744000159090559"
+    }
+  },
+  {
+    "company": "Hitachi Solutions",
+    "ats_provider": "smartrecruiters",
+    "board_token": "HitachiSolutions",
+    "source_url": "https://careers.smartrecruiters.com/HitachiSolutions",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:20.519670+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/HitachiSolutions/postings",
+      "http_status": 200,
+      "india_jobs_observed": 17,
+      "evidence_location": " Chennai in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/HitachiSolutions/postings/744000158437980"
+    }
+  },
+  {
+    "company": "NielsenIQ",
+    "ats_provider": "smartrecruiters",
+    "board_token": "NielsenIQ",
+    "source_url": "https://careers.smartrecruiters.com/NielsenIQ",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:57.799937+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/NielsenIQ/postings",
+      "http_status": 200,
+      "india_jobs_observed": 66,
+      "evidence_location": " Chennai in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/NielsenIQ/postings/744000159435459"
+    }
+  },
+  {
+    "company": "QAD, Inc.",
+    "ats_provider": "smartrecruiters",
+    "board_token": "QADInc",
+    "source_url": "https://careers.smartrecruiters.com/QADInc",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:25.078029+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/QADInc/postings",
+      "http_status": 200,
+      "india_jobs_observed": 44,
+      "evidence_location": " Pune in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/QADInc/postings/744000159054939"
+    }
+  },
+  {
+    "company": "ServiceNow",
+    "ats_provider": "smartrecruiters",
+    "board_token": "ServiceNow",
+    "source_url": "https://careers.smartrecruiters.com/ServiceNow",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:54.750068+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/ServiceNow/postings",
+      "http_status": 200,
+      "india_jobs_observed": 79,
+      "evidence_location": " Hyderabad in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/ServiceNow/postings/744000159454569"
+    }
+  },
+  {
+    "company": "Syngenta Group",
+    "ats_provider": "smartrecruiters",
+    "board_token": "SyngentaGroup",
+    "source_url": "https://careers.smartrecruiters.com/SyngentaGroup",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:32.744313+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/SyngentaGroup/postings",
+      "http_status": 200,
+      "india_jobs_observed": 29,
+      "evidence_location": " Pune in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/SyngentaGroup/postings/744000159392929"
+    }
+  },
+  {
+    "company": "Version 1",
+    "ats_provider": "smartrecruiters",
+    "board_token": "Version1",
+    "source_url": "https://careers.smartrecruiters.com/Version1",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:45:26.690007+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/Version1/postings",
+      "http_status": 200,
+      "india_jobs_observed": 28,
+      "evidence_location": " Bengaluru in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/Version1/postings/744000159360849"
+    }
+  },
+  {
+    "company": "Western Digital",
+    "ats_provider": "smartrecruiters",
+    "board_token": "WesternDigital",
+    "source_url": "https://careers.smartrecruiters.com/WesternDigital",
+    "country_focus": [
+      "IN"
+    ],
+    "enabled": true,
+    "sync_interval_hours": 6,
+    "verification": {
+      "verified_at": "2026-11-03T17:44:56.268805+00:00",
+      "endpoint": "https://api.smartrecruiters.com/v1/companies/WesternDigital/postings",
+      "http_status": 200,
+      "india_jobs_observed": 2,
+      "evidence_location": " Bengaluru in",
+      "evidence_job_url": "https://api.smartrecruiters.com/v1/companies/WesternDigital/postings/744000157507719"
+    }
+  }
+]

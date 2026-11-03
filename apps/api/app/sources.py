@@ -9,9 +9,9 @@ from app.schemas import JobData
 from app.web_pages import PageBlocked, PageFetcher
 
 PROVIDERS = {
-    "arbeitnow": {"name": "Arbeitnow", "url": "https://www.arbeitnow.com", "interval": 3600},
-    "remotive": {"name": "Remotive", "url": "https://remotive.com", "interval": 21600},
-    "jobicy": {"name": "Jobicy", "url": "https://jobicy.com", "interval": 3600},
+    "arbeitnow": {"name": "Arbeitnow", "url": "https://www.arbeitnow.com", "interval": 21600},
+    "remotive": {"name": "Remotive", "url": "https://remotive.com", "interval": 43200},
+    "jobicy": {"name": "Jobicy", "url": "https://jobicy.com", "interval": 21600},
     "tavily": {"name": "Tavily web search", "url": "https://tavily.com", "interval": 1800},
 }
 
@@ -159,7 +159,7 @@ def fetch_feed(provider, http):
                 data = request_json(http, "GET", "https://remotive.com/api/remote-jobs")
                 records = data.get("jobs")
             else:
-                params = {"count": 200}
+                params = {"count": 100}
                 if cursor:
                     params["cursor"] = cursor
                 data = request_json(http, "GET", "https://jobicy.com/api/jobs", params=params)

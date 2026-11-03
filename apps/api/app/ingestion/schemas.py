@@ -41,6 +41,12 @@ class NormalizedJob(BaseModel):
     )
     job_url: str = Field(max_length=2000)
     apply_url: str | None = Field(default=None, max_length=2000)
+    salary_min: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    salary_max: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    salary_currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+    salary_period: str | None = Field(default=None, max_length=20)
+    salary_text: str | None = Field(default=None, max_length=500)
+    experience_level: str | None = Field(default=None, max_length=80)
     requisition_id: str | None = Field(default=None, max_length=200)
     posted_at: datetime | None = None
     valid_through: datetime | None = None

@@ -134,7 +134,7 @@ export function FeedToolbar({
             value={filters.sort}
             onChange={(event) =>
               push((params) => {
-                if (event.target.value === "newest") params.delete("sort");
+                if (event.target.value === "india") params.delete("sort");
                 else params.set("sort", event.target.value);
               })
             }

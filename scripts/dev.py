@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install everything and run the Applyr API + web dashboard together."""
+"""Install and run Applyr API, dashboard, ingestion worker and scheduler."""
 
 from __future__ import annotations
 
@@ -157,7 +157,9 @@ def stop(process: subprocess.Popen | None, label: str) -> None:
 
 def main() -> None:
     if not API_PROJECT.is_dir() or not WEB_PROJECT.is_dir():
-        fail("Run this command from a complete Applyr checkout (apps/api and apps/web).")
+        fail(
+            "Run this command from a complete Applyr checkout (apps/api and apps/web)."
+        )
 
     if not API_PORT.isdigit() or not WEB_PORT.isdigit():
         fail("API_PORT and WEB_PORT must be numeric.")
@@ -167,9 +169,13 @@ def main() -> None:
         fail("API_PORT and WEB_PORT must be different.")
 
     if port_busy(API_PORT):
-        fail(f"Port {API_PORT} is already in use. Stop the existing API or set API_PORT.")
+        fail(
+            f"Port {API_PORT} is already in use. Stop the existing API or set API_PORT."
+        )
     if port_busy(WEB_PORT):
-        fail(f"Port {WEB_PORT} is already in use. Stop the existing web app or set WEB_PORT.")
+        fail(
+            f"Port {WEB_PORT} is already in use. Stop the existing web app or set WEB_PORT."
+        )
 
     existing_next = running_next_dev()
     if existing_next:
@@ -188,7 +194,12 @@ def main() -> None:
 
     if not (ROOT / ".env").exists():
         say("Creating local configuration")
-        subprocess.run([sys.executable, str(ROOT / "scripts" / "bootstrap.py")], cwd=ROOT, env=env, check=True)
+        subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "bootstrap.py")],
+            cwd=ROOT,
+            env=env,
+            check=True,
+        )
     if not env_has_token():
         fail(
             "The root .env has no usable API_TOKEN. Run `python3 scripts/bootstrap.py`, "
@@ -207,7 +218,9 @@ def main() -> None:
         fail("JOBS_DATABASE_URL must be a PostgreSQL URL.")
 
     run_install([uv, "sync", "--project", "apps/api", "--frozen"], "backend", env)
-    run_install(pnpm + ["--dir", "apps/web", "install", "--frozen-lockfile"], "frontend", env)
+    run_install(
+        pnpm + ["--dir", "apps/web", "install", "--frozen-lockfile"], "frontend", env
+    )
 
     say("Checking PostgreSQL connection")
     probe = subprocess.run(
@@ -232,6 +245,9 @@ def main() -> None:
 
     api: subprocess.Popen | None = None
     web: subprocess.Popen | None = None
+    worker: subprocess.Popen | None = None
+    beat: subprocess.Popen | None = None
+    redis_process: subprocess.Popen | None = None
 
     def interrupt(_signum, _frame):
         raise KeyboardInterrupt
@@ -265,6 +281,91 @@ def main() -> None:
         if not wait_for(f"http://{API_HOST}:{API_PORT}/healthz", 60, api):
             fail("The API did not become healthy. Check the API output above.")
 
+        say("Checking Redis for automated ingestion")
+        redis_probe = [
+            uv,
+            "run",
+            "--project",
+            "apps/api",
+            "--frozen",
+            "python",
+            "-c",
+            "from redis import Redis; from app.config import get_settings; "
+            "Redis.from_url(get_settings().redis_url, socket_connect_timeout=2).ping()",
+        ]
+        if subprocess.run(
+            redis_probe, cwd=ROOT, env=env, capture_output=True
+        ).returncode:
+            from urllib.parse import urlsplit
+
+            redis_url = urlsplit(env_value("REDIS_URL") or "redis://localhost:6379/0")
+            redis_binary = shutil.which("redis-server")
+            if redis_url.hostname not in {"localhost", "127.0.0.1"} or not redis_binary:
+                fail(
+                    "Redis is required for automated ingestion. Start Redis or use infra/compose.yaml."
+                )
+            redis_dir = ROOT / "storage" / "redis"
+            redis_dir.mkdir(parents=True, exist_ok=True)
+            say("Starting local Redis")
+            redis_process = subprocess.Popen(
+                [
+                    redis_binary,
+                    "--bind",
+                    "127.0.0.1",
+                    "--port",
+                    str(redis_url.port or 6379),
+                    "--appendonly",
+                    "yes",
+                    "--dir",
+                    str(redis_dir),
+                ],
+                cwd=ROOT,
+                env=env,
+                **popen_kwargs(),
+            )
+            deadline = time.monotonic() + 10
+            while subprocess.run(
+                redis_probe, cwd=ROOT, env=env, capture_output=True
+            ).returncode:
+                if time.monotonic() >= deadline or redis_process.poll() is not None:
+                    fail("Local Redis failed to become ready.")
+                time.sleep(0.2)
+        say("Starting ingestion worker and scheduler")
+        celery_command = [
+            uv,
+            "run",
+            "--project",
+            "apps/api",
+            "--frozen",
+            "celery",
+            "-A",
+            "app.workers.celery_app:celery",
+        ]
+        worker = subprocess.Popen(
+            celery_command
+            + ["worker", "-Q", "ingestion", "--loglevel=INFO"]
+            + (
+                ["--pool=solo", "--concurrency=1"]
+                if sys.platform == "darwin"
+                else ["--concurrency=2"]
+            ),
+            cwd=ROOT,
+            env=env,
+            **popen_kwargs(),
+        )
+        beat = subprocess.Popen(
+            celery_command
+            + [
+                "beat",
+                "--loglevel=INFO",
+                "--schedule",
+                str(ROOT / "storage" / "celerybeat-schedule"),
+            ],
+            cwd=ROOT,
+            env=env,
+            **popen_kwargs(),
+        )
+
         web_env = env.copy()
         web_env.setdefault("API_BASE_URL", f"http://{API_HOST}:{API_PORT}")
         web_env.setdefault("PORT", WEB_PORT)
@@ -294,11 +395,17 @@ def main() -> None:
             f"  Landing    http://{API_HOST}:{WEB_PORT}/\n"
             f"  API docs   http://{API_HOST}:{API_PORT}/docs\n"
             "\n"
-            "  Press Ctrl-C to stop both servers.\n",
+            "  Ingestion worker and scheduler are running automatically.\n"
+            "  Press Ctrl-C to stop all services.\n",
             flush=True,
         )
 
         while True:
+            for service, name in ((worker, "ingestion worker"), (beat, "scheduler")):
+                if service.poll() is not None:
+                    fail(
+                        f"The {name} stopped unexpectedly (exit {service.returncode})."
+                    )
             if api.poll() is not None:
                 fail(f"The API stopped unexpectedly (exit {api.returncode}).")
             if web.poll() is not None:
@@ -309,6 +416,9 @@ def main() -> None:
         print()
     finally:
         stop(web, "dashboard")
+        stop(beat, "scheduler")
+        stop(worker, "ingestion worker")
+        stop(redis_process, "local Redis")
         stop(api, "API")
 
 

@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import math
 import random
 import time
 from datetime import UTC, datetime
@@ -20,7 +21,8 @@ class FetchFailure(Exception):
 
 def retry_seconds(value: str | None) -> float:
     try:
-        return max(0, float(value or "0"))
+        seconds = float(value or "0")
+        return min(31536000, max(0, seconds)) if math.isfinite(seconds) else 0
     except ValueError:
         try:
             return max(0, (parsedate_to_datetime(value) - datetime.now(UTC)).total_seconds())
@@ -83,7 +85,7 @@ class HTTP:
                         False,
                     )
                 if response.status_code == 429:
-                    delay = retry_seconds(response.headers.get("retry-after"))
+                    delay = retry_seconds(response.headers.get("retry-after")) or 60
                     if delay > 30 or attempt == 2:
                         raise FetchFailure("HTTP_429", retry_after=delay)
                     await self.sleep(delay)

@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.database import get_session, migrate
+from app.database import get_engine, get_session, migrate
 from app.discovery import create_run, execute_run, run_response
 from app.ingestion.api import router as ingestion_router
 from app.models import DiscoveryRun, IngestionSource, Job, SourceState, now
@@ -30,6 +30,10 @@ def auth(credentials: HTTPAuthorizationCredentials | None = Depends(bearer)):
 @asynccontextmanager
 async def lifespan(app):
     migrate()
+    from app.ingestion.bootstrap import bootstrap
+
+    with Session(get_engine()) as session:
+        bootstrap(session)
     yield
 
 

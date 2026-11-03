@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 
 from app.models import Job, JobMatch, JobSource, JobTag, now
 from app.schemas import JobResponse, JobsPage, JobSummary, SourceRef, WorkMode
@@ -22,6 +22,8 @@ class Filters(BaseModel):
     source: list[Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]{0,29}$")]] = Field(
         default_factory=list, max_length=20
     )
+    india_status: Literal["CONFIRMED", "NOT_ELIGIBLE", "UNCERTAIN"] | None = None
+    target_role: bool | None = None
     india_eligible: bool | None = None
     experience_max: int | None = Field(default=None, ge=0, le=60)
     include_uncertain: bool = True
@@ -35,7 +37,7 @@ class Filters(BaseModel):
     min_salary: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
     salary_period: Literal["hourly", "daily", "weekly", "monthly", "yearly"] | None = None
-    sort: Literal["newest", "oldest", "salary_desc", "title", "match"] = "newest"
+    sort: Literal["india", "newest", "oldest", "salary_desc", "title", "match"] = "india"
     page: int = Field(default=1, ge=1, le=100000)
     page_size: int = Field(default=25, ge=1, le=100)
 
@@ -59,6 +61,12 @@ def filtered(filters: Filters):
     if filters.match_profile:
         query = query.join(JobMatch, JobMatch.job_id == Job.id).where(
             JobMatch.profile_id == filters.match_profile
+        )
+    if filters.india_status:
+        query = query.where(Job.india_status == filters.india_status)
+    if filters.target_role is not None:
+        query = query.where(
+            Job.normalized_json["derived"]["target_role"].as_boolean() == filters.target_role
         )
     if filters.status:
         query = query.where(Job.status == filters.status)
@@ -135,6 +143,10 @@ def serialize_many(session, rows, detail=False, match_profile=None):
                     provider=item.provider,
                     source_url=item.source_url,
                     last_seen_at=item.last_seen_at,
+                    external_id=item.external_id,
+                    first_seen_at=item.first_seen_at,
+                    last_verified_at=item.last_verified_at,
+                    active=item.active,
                 )
             )
     matches = {}
@@ -182,14 +194,35 @@ def list_jobs(session, filters):
     count = total(session, query)
     posted = func.coalesce(Job.published_at, Job.first_seen_at)
     order = {
+        "india": posted.desc(),
         "newest": posted.desc(),
         "oldest": posted.asc(),
         "title": func.lower(Job.title).asc(),
         "salary_desc": func.coalesce(Job.salary_max, Job.salary_min).desc().nulls_last(),
         "match": JobMatch.score.desc(),
     }[filters.sort]
+    priorities = []
+    if filters.sort == "india":
+        priorities = [
+            case((Job.listing_type == "JOB_POSTING", 1), else_=0).desc(),
+            case(
+                (Job.normalized_json["derived"]["target_role"].as_boolean().is_(True), 1), else_=0
+            ).desc(),
+            case(
+                (Job.india_eligible.is_(True), 2), (Job.india_eligible.is_(None), 1), else_=0
+            ).desc(),
+            case(
+                (Job.normalized_json["derived"]["junior_fit"].as_boolean().is_(True), 2),
+                (Job.normalized_json["derived"]["senior"].as_boolean().is_(True), 0),
+                else_=1,
+            ).desc(),
+            case(
+                (Job.primary_source.in_(["greenhouse", "lever", "ashby", "smartrecruiters"]), 1),
+                else_=0,
+            ).desc(),
+        ]
     rows = session.scalars(
-        query.order_by(order, Job.id)
+        query.order_by(*priorities, order, Job.id)
         .offset((filters.page - 1) * filters.page_size)
         .limit(filters.page_size)
     ).all()

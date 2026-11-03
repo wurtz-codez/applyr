@@ -45,6 +45,10 @@ class JobData(BaseModel):
 
 
 class SourceRef(UTCResponse):
+    external_id: str | None = None
+    first_seen_at: datetime | None = None
+    last_verified_at: datetime | None = None
+    active: bool = True
     provider: str
     source_url: str
     last_seen_at: datetime
@@ -77,6 +81,12 @@ class JobSummary(UTCResponse):
     apply_url: str | None = None
     original_job_url: str | None = None
     normalized_json: dict | None = None
+    india_status: Literal["CONFIRMED", "NOT_ELIGIBLE", "UNCERTAIN"] = "UNCERTAIN"
+    eligibility_reason: str | None = None
+    eligibility_evidence: dict | None = None
+    eligibility_evaluated_at: datetime | None = None
+    eligibility_method: str | None = None
+    eligibility_confidence: float | None = None
     india_eligible: bool | None = None
     experience_min: int | None = None
     experience_max: int | None = None

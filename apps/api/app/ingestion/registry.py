@@ -30,3 +30,8 @@ for name, factory in [
     ("jobspy", JobSpy),
 ]:
     register(name, factory)
+
+from app.ingestion.connectors.public_feeds import PUBLIC_FEEDS, PublicFeed  # noqa: E402
+
+for name in sorted(PUBLIC_FEEDS):
+    register(name, PublicFeed)

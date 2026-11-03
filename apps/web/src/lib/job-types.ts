@@ -1,6 +1,6 @@
 export type WorkMode = "REMOTE" | "HYBRID" | "ONSITE" | "UNKNOWN";
 export type ListingType = "JOB_POSTING" | "SEARCH_RESULT";
-export type SortKey = "newest" | "oldest" | "title" | "match";
+export type SortKey = "india" | "newest" | "oldest" | "title" | "match";
 export type FeedType = "jobs" | "all" | "search";
 
 export type SourceRef = {
@@ -15,6 +15,9 @@ export type JobSummary = {
   normalized_json: { job_url?: string; apply_url?: string | null } | null;
   match_score: number | null;
   match_reasons: string[];
+  india_status: "CONFIRMED" | "NOT_ELIGIBLE" | "UNCERTAIN";
+  eligibility_reason: string | null;
+  eligibility_evaluated_at: string | null;
   india_eligible: boolean | null;
   experience_min: number | null;
   experience_max: number | null;

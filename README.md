@@ -4,7 +4,8 @@
 
 Applyr ingests documented public ATS boards, permitted career pages, and public job feeds,
 normalizes and deduplicates their listings, and serves a Next.js dashboard backed by FastAPI
-and PostgreSQL. Basic ingestion needs no paid API keys. Optional Tavily company discovery
+and PostgreSQL. Default ingestion automatically registers 71 verified India-focused ATS boards and four
+keyless feeds, then schedules refresh, discovery, normalization and legacy backfill. Optional Tavily company discovery
 returns source suggestions; it is not the default job listing engine.
 
 [Quick start](#quick-start) · [Using the dashboard](#using-the-dashboard) ·
@@ -15,7 +16,7 @@ returns source suggestions; it is not the default job listing engine.
 
 | Feature | Available now |
 | --- | --- |
-| Collect jobs without company-board setup | Arbeitnow, Remotive, and Jobicy public feeds |
+| Collect India-relevant jobs without board setup | 71 verified ATS boards plus Arbeitnow, Remotive, Jobicy and Himalayas |
 | Discover opportunities through web search | Tavily integration with an optional API key |
 | Browse and narrow down listings | Keyword, company, location, work mode, type, experience, tags, source, date, and salary filters |
 | Inspect a role | Job details, original listing link, and source attribution |
@@ -29,11 +30,12 @@ returns source suggestions; it is not the default job listing engine.
 | Manage source coverage | `/jobs/sources` dashboard, add/enable/disable/sync actions |
 
 The current implementation includes deterministic profile ranking. LLM reranking, resume
-tailoring, automatic applications, tenant authentication, automated daily company discovery,
-and large Scrapy crawling workflows remain planned. JobSpy and Playwright adapters are
+tailoring, automatic applications, tenant authentication,
+and large Scrapy crawling workflows remain planned. Daily keyless ATS discovery is implemented. JobSpy and Playwright adapters are
 optional and disabled by default; neither is required for a default self-hosted installation.
 
-Technical documentation: [architecture](docs/JOB_INGESTION_ARCHITECTURE.md) ·
+Technical documentation: [Job Ingestion v2](docs/JOB_INGESTION_V2.md) ·
+[pre-change audit](docs/JOB_INGESTION_V2_AUDIT.md) · [architecture](docs/JOB_INGESTION_ARCHITECTURE.md) ·
 [connector contributor guide](docs/CONNECTOR_DEVELOPMENT.md) ·
 [exact ingestion setup and troubleshooting](docs/JOB_INGESTION_SETUP.md).
 
@@ -41,12 +43,13 @@ Technical documentation: [architecture](docs/JOB_INGESTION_ARCHITECTURE.md) ·
 
 ```mermaid
 flowchart LR
+    SEED["71 verified India boards + daily keyless discovery"] --> REGISTRY
     REGISTRY["Company/source registry"] --> QUEUE["PostgreSQL runs → Celery / Redis / Beat"]
     QUEUE --> ATS["Greenhouse · Lever · Ashby · SmartRecruiters"]
     QUEUE --> CRAWL["Permitted career-page connectors"]
     ATS --> NORMALIZE
     CRAWL --> NORMALIZE
-    FEEDS["Public job feeds<br/>Arbeitnow · Remotive · Jobicy"] --> NORMALIZE["Normalize and deduplicate"]
+    FEEDS["Public job feeds<br/>Arbeitnow · Remotive · Jobicy · Himalayas"] --> NORMALIZE["Normalize and deduplicate"]
     DISCOVERY["Optional Tavily source suggestions"] --> REGISTRY
     SEARCH["Explicit legacy Tavily search"] --> PAGES["Check public job pages"]
     PAGES --> STRUCTURED{"Structured job data?"}
@@ -79,6 +82,7 @@ view shows job postings; search pages can be inspected separately.
 | [Node.js](https://nodejs.org/en/download) | Node.js 24 recommended for the dashboard |
 | [pnpm](https://pnpm.io/installation) | 10.24.0 is the version used for local setup |
 | [PostgreSQL](https://www.postgresql.org/download/) | 16+; local development and Render database |
+| [Redis](https://redis.io/) | 7+; automatic ingestion scheduler and workers |
 | Make | Optional shortcut commands on macOS/Linux; direct uv equivalents are below |
 
 If pnpm is missing and Node.js/npm are already installed:
@@ -87,59 +91,40 @@ If pnpm is missing and Node.js/npm are already installed:
 npm install --global pnpm@10.24.0
 ```
 
-PostgreSQL is required. Docker, Redis, and a Tavily key are not needed to start with public
-feeds.
+PostgreSQL and Redis are required for automatic ingestion. Docker is an optional way to run
+them. No third-party API key is needed.
 
 ## Quick start
 
-For the durable ATS ingestion engine, start PostgreSQL and Redis, then run:
+Start PostgreSQL and create a local database, then run:
 
 ```sh
 python3 scripts/bootstrap.py
-uv sync --project apps/api --frozen
 createdb applyr  # only if the database does not already exist
-uv run --project apps/api --frozen python -m app.cli init-db
-uv run --project apps/api --frozen python -m app.ingestion.cli seed config/job_sources.example.json
-```
-
-Start each service in its own terminal:
-
-```sh
-uv run --project apps/api --frozen uvicorn app.main:app --host 127.0.0.1 --port 8000
-uv run --project apps/api --frozen celery -A app.workers.celery_app:celery worker -Q ingestion --concurrency=2 --loglevel=INFO
-uv run --project apps/api --frozen celery -A app.workers.celery_app:celery beat --loglevel=INFO
-pnpm --dir apps/web install --frozen-lockfile
-pnpm --dir apps/web dev
-```
-
-Review and enable an example source at `/jobs/sources`, enter your administrator token,
-and request sync. The API returns a queued run; Beat dispatches it within the next minute.
-Examples are disabled initially so operators can review access terms. A local maintenance
-sync can run without Redis using `python -m app.ingestion.cli sync SOURCE_UUID --inline`.
-
-For local macOS/Python 3.14 development, replace the worker's `--concurrency=2` with
-`--pool=solo --concurrency=1`; see the setup guide for the verified local command.
-
-Docker alternative: `docker compose --env-file .env -f infra/compose.yaml up --build -d`.
-See [the setup guide](docs/JOB_INGESTION_SETUP.md) for token handling, registration, matching,
-Docker seeding, test commands and optional adapters. Default ingestion requires neither
-Tavily nor a model API key.
-
-The existing feed-only development workflow below remains available:
-
-Already have the repository checked out? Install both apps and start them together with one
-command:
-
-```sh
 ./scripts/dev.py
 ```
 
-The script creates `.env` if it is missing, installs the backend and frontend dependencies,
-waits for the API, and runs the API and dashboard together until Ctrl-C. PostgreSQL must be
-running and `JOBS_DATABASE_URL` must point to a database before you start. It uses ports 8000
-and 3000; set `API_PORT` and `WEB_PORT` if those are already taken. Stop any existing dev
-servers first. On a fresh database, run `make refresh` once after it starts to collect the
-first listings.
+The launcher installs dependencies and starts the API, dashboard, ingestion worker and Beat.
+If a local Redis server is unavailable and `redis-server` is installed, it starts one too.
+API initialization applies migrations and registers verified boards/public feeds. Beat
+queues and dispatches ingestion automatically; no source registration or manual refresh is
+required. Open `http://127.0.0.1:3000/jobs` and configure job preferences. First results appear
+as sources finish; India software jobs and early-career opportunities rank first.
+
+PostgreSQL must already be running and match `JOBS_DATABASE_URL`. Set `API_PORT` and
+`WEB_PORT` if 8000/3000 are occupied. Stop existing development services before running
+the launcher. It uses Celery's solo pool on macOS and stops its own services on Ctrl-C.
+
+Docker backend alternative:
+
+```sh
+docker compose --env-file .env -f infra/compose.yaml up --build -d
+```
+
+See [Job Ingestion v2](docs/JOB_INGESTION_V2.md) for managed-service commands, upgrade
+behavior, source policies, contribution instructions, filtering and diagnostics. Existing
+source APIs/UI remain available for optional local additions. Restart API, worker and Beat
+when upgrading; already running workers retain old code and schedules.
 
 The full step-by-step setup follows.
 
@@ -220,29 +205,13 @@ Without Make, the backend installation command is:
 uv sync --project apps/api --frozen
 ```
 
-### 4. Collect your first jobs
+### 4. Automatic collection
 
-```sh
-make refresh
-make jobs
-```
-
-The legacy collector uses the public feeds by default. Select `--provider tavily` explicitly
-to use the optional compatibility search path. The first
-refresh can take a few minutes. It prints a run summary with per-source counts and errors;
-`make jobs` previews collected records in the terminal. This step does not require the API
-server to be running.
-
-Without Make:
-
-```sh
-uv run --project apps/api --frozen python -m app.cli refresh
-uv run --project apps/api --frozen python -m app.cli jobs --limit 10
-```
-
-A fresh clone starts with an empty database. Run a refresh before expecting listings in the
-feed. A source outage can leave partial results; check the printed summary and troubleshooting
-steps below.
+The recommended `./scripts/dev.py` launcher starts all application services. With the
+separate API/frontend commands below, also start a worker and Beat as shown in
+[the v2 service setup](docs/JOB_INGESTION_V2.md#start-the-default-installation).
+The first ingestion pass and legacy eligibility backfill run automatically. `make jobs`
+can inspect the stored catalog; `make refresh` remains an optional legacy diagnostic.
 
 ### 5. Start the API — terminal 1
 
@@ -454,10 +423,10 @@ never silently mixed. Facets come from stored data rather than invented filter c
 ## Source coverage and collection limits
 
 
-- Public feeds are fetched from fixed endpoints. Pagination is bounded to three pages per
-  source per refresh, and truncated traversals are marked `partial`.
-- Arbeitnow and Jobicy refresh at most hourly; Remotive at most every six hours. Repeated
-  requests within the interval use stored data. Rate-limit responses and cooldowns are visible.
+- Scheduled public feeds use fixed endpoints, bounded pagination and persistent checkpoints.
+  Legacy manual refresh retains its three-page limit.
+- Defaults: Arbeitnow/Jobicy and ATS boards every six hours; Remotive every twelve hours;
+  Himalayas daily. Provider cooldowns, rate limits and backoff survive restarts.
 - Tavily caches the same query for 30 minutes, caps daily search requests, uses basic search,
   disables automatic provider parameter selection, and does not request generated answers.
 - At most ten search-result pages are fetched for structured extraction per query. Requests
@@ -510,7 +479,9 @@ Contribute documented public ATS adapters or employer-authorized integrations th
 [connector guide](docs/CONNECTOR_DEVELOPMENT.md). New connectors register through one typed
 interface; the orchestrator does not need provider-specific parsing branches. Add synthetic
 fixtures, permission/attribution notes, dependency declarations, and tests. Company board
-contributions can extend the reviewed JSON seed format in `config/job_sources.example.json`.
+contributions can extend `apps/api/app/ingestion/seed/companies_india.json` with verified
+India evidence, or submit observed ATS URLs in `discovery_candidates.json`; see
+[the contribution workflow](docs/JOB_INGESTION_V2.md#continuous-keyless-discovery-and-contributions).
 Do not commit credentials, applicant data, or third-party job datasets.
 
 Validation from the repository root:

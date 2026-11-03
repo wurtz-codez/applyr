@@ -1,7 +1,16 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -13,7 +22,22 @@ def now():
 
 class Job(Base):
     __tablename__ = "jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "india_status IN ('CONFIRMED', 'NOT_ELIGIBLE', 'UNCERTAIN')",
+            name="ck_jobs_india_status",
+        ),
+    )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    india_status: Mapped[str] = mapped_column(
+        String(20), default="UNCERTAIN", server_default="UNCERTAIN", index=True
+    )
+    eligibility_reason: Mapped[str | None] = mapped_column(String(200))
+    eligibility_evidence: Mapped[dict | None] = mapped_column(JSON)
+    eligibility_evaluated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    eligibility_method: Mapped[str | None] = mapped_column(String(80))
+    eligibility_confidence: Mapped[float | None]
+    normalization_version: Mapped[int] = mapped_column(default=0, server_default="0", index=True)
     canonical_url: Mapped[str] = mapped_column(String(2000), unique=True)
     title: Mapped[str] = mapped_column(String(500), index=True)
     company: Mapped[str | None] = mapped_column(String(300), index=True)
@@ -63,6 +87,7 @@ class JobSource(Base):
     metadata_json: Mapped[dict | None] = mapped_column(JSON)
     ats_identity: Mapped[str | None] = mapped_column(String(500), index=True)
     raw_json: Mapped[dict | None] = mapped_column(JSON)
+    last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     active: Mapped[bool] = mapped_column(default=True)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -135,6 +160,8 @@ class IngestionSource(Base):
     next_fetch_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     failure_count: Mapped[int] = mapped_column(default=0)
     health: Mapped[str] = mapped_column(String(30), default="unverified")
+    seed_defaults: Mapped[dict | None] = mapped_column(JSON)
+    local_overrides: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     sync_state: Mapped[dict] = mapped_column(JSON, default=dict)
     active_run_id: Mapped[UUID | None] = mapped_column(Uuid)
     lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -178,3 +205,16 @@ class JobMatch(Base):
     reasons: Mapped[list] = mapped_column(JSON)
     content_hash: Mapped[str] = mapped_column(String(64))
     evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class MaintenanceState(Base):
+    """Durable, shared leases for bounded global maintenance tasks."""
+
+    __tablename__ = "ingestion_maintenance"
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    next_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_token: Mapped[UUID | None] = mapped_column(Uuid)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failure_count: Mapped[int] = mapped_column(default=0)
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
