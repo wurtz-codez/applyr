@@ -74,6 +74,15 @@ class JobSummary(UTCResponse):
     last_seen_at: datetime
     tags: list[str]
     sources: list[SourceRef]
+    apply_url: str | None = None
+    original_job_url: str | None = None
+    normalized_json: dict | None = None
+    india_eligible: bool | None = None
+    experience_min: int | None = None
+    experience_max: int | None = None
+    status: str = "active"
+    match_score: float | None = None
+    match_reasons: list[str] = Field(default_factory=list)
 
 
 class JobResponse(JobSummary):

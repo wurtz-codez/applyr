@@ -182,8 +182,9 @@ def extract_jobs(markup: str, page_url: str) -> list[JobData]:
 
 
 class PageFetcher:
-    def __init__(self, client=None):
+    def __init__(self, client=None, request_interval=0.0):
         self.owns_client = client is None
+        self.request_interval, self.last_request = request_interval, 0.0
         self.client = client or httpx.Client(
             transport=PublicTransport(),
             follow_redirects=False,
@@ -194,9 +195,15 @@ class PageFetcher:
 
     def read(self, url, deadline, limit):
         canonical_url(url)
+        delay = max(0, self.request_interval - (time.monotonic() - self.last_request))
+        if delay >= deadline - time.monotonic():
+            raise PageBlocked("PAGE_TIMEOUT")
+        if delay:
+            time.sleep(delay)
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise PageBlocked("PAGE_TIMEOUT")
+        self.last_request = time.monotonic()
         with self.client.stream("GET", url, timeout=min(5, remaining)) as response:
             if response.is_redirect:
                 return response.status_code, response.headers.get("location"), ""
@@ -204,7 +211,15 @@ class PageFetcher:
                 return response.status_code, None, ""
             if not any(
                 t in response.headers.get("content-type", "")
-                for t in ["text/", "application/xhtml"]
+                for t in [
+                    "text/",
+                    "application/xhtml",
+                    "application/xml",
+                    "application/rss",
+                    "application/atom",
+                    "application/json",
+                    "application/javascript",
+                ]
             ):
                 raise PageBlocked("UNSUPPORTED_CONTENT_TYPE")
             data = bytearray()

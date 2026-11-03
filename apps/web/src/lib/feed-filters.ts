@@ -7,9 +7,9 @@ import type {
 
 export const PAGE_SIZE = 24;
 
-export const PROVIDERS = ["arbeitnow", "remotive", "jobicy", "tavily"] as const;
+export const PROVIDERS = ["arbeitnow", "remotive", "jobicy", "tavily", "greenhouse", "lever", "ashby", "smartrecruiters", "career_page", "feed", "browser", "jobspy"] as const;
 export const WORK_MODES = ["REMOTE", "HYBRID", "ONSITE", "UNKNOWN"] as const;
-export const SORTS: SortKey[] = ["newest", "oldest", "title"];
+export const SORTS: SortKey[] = ["newest", "oldest", "title", "match"];
 export const CURRENCIES = [
   "USD",
   "EUR",
@@ -35,6 +35,15 @@ export const PROVIDER_LABELS: Record<string, string> = {
   remotive: "Remotive",
   jobicy: "Jobicy",
   tavily: "Tavily",
+  greenhouse: "Greenhouse",
+  lever: "Lever",
+  ashby: "Ashby",
+  smartrecruiters: "SmartRecruiters",
+  career_page: "Company career page",
+  feed: "Authorized feed",
+  browser: "Rendered career page",
+  jobspy: "Authorized JobSpy",
+  auto: "Detect from URL",
 };
 
 export const WORK_MODE_LABELS: Record<string, string> = {
@@ -56,6 +65,7 @@ export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "newest", label: "Newest first" },
   { value: "oldest", label: "Oldest first" },
   { value: "title", label: "Title A–Z" },
+  { value: "match", label: "Match score" },
 ];
 
 type ParamInput =
@@ -96,7 +106,9 @@ export function parseFeedFilters(input: ParamInput): FeedFilters {
     typeValue === "all" ? "all" : typeValue === "search" ? "search" : "jobs";
 
   const sortValue = one(input, "sort");
-  const sort: SortKey = isOneOf(sortValue, SORTS) ? sortValue : "newest";
+  const profileRaw = one(input, "match_profile");
+  const matchProfile = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileRaw) ? profileRaw : "";
+  const sort: SortKey = isOneOf(sortValue, SORTS) && (sortValue !== "match" || matchProfile) ? sortValue : "newest";
 
   const workMode = one(input, "work_mode").toUpperCase();
   const posted = one(input, "posted_within_days");
@@ -110,6 +122,10 @@ export function parseFeedFilters(input: ParamInput): FeedFilters {
       : "";
 
   return {
+    matchProfile,
+    indiaEligible: one(input, "india_eligible") === "true" ? "true" : "",
+    maxExperience: one(input, "experience_max") === "2" ? "2" : "",
+    includeUncertain: one(input, "include_uncertain") !== "false",
     q: clean(one(input, "q"), 200),
     company: clean(one(input, "company"), 300),
     location: clean(one(input, "location"), 200),
@@ -133,6 +149,10 @@ export function parseFeedFilters(input: ParamInput): FeedFilters {
 
 export function filtersToApiParams(filters: FeedFilters): URLSearchParams {
   const params = new URLSearchParams();
+  if (filters.matchProfile) params.set("match_profile", filters.matchProfile);
+  if (filters.indiaEligible) params.set("india_eligible", filters.indiaEligible);
+  if (filters.maxExperience) params.set("experience_max", filters.maxExperience);
+  params.set("include_uncertain", String(filters.includeUncertain));
   params.set("page", String(filters.page));
   params.set("page_size", String(PAGE_SIZE));
   params.set("sort", filters.sort);
@@ -162,6 +182,10 @@ export function filtersToApiParams(filters: FeedFilters): URLSearchParams {
 
 export function filtersToSearchParams(filters: FeedFilters): URLSearchParams {
   const params = new URLSearchParams();
+  if (filters.matchProfile) params.set("match_profile", filters.matchProfile);
+  if (filters.indiaEligible) params.set("india_eligible", filters.indiaEligible);
+  if (filters.maxExperience) params.set("experience_max", filters.maxExperience);
+  if (!filters.includeUncertain) params.set("include_uncertain", "false");
   if (filters.q) params.set("q", filters.q);
   if (filters.company) params.set("company", filters.company);
   if (filters.location) params.set("location", filters.location);
@@ -198,6 +222,10 @@ export type ActiveChip = {
 
 export function activeFilterChips(filters: FeedFilters): ActiveChip[] {
   const chips: ActiveChip[] = [];
+  if (filters.matchProfile) chips.push({ key: "match_profile", label: "Profile matches" });
+  if (filters.indiaEligible) chips.push({ key: "india_eligible", label: "India eligible" });
+  if (filters.maxExperience) chips.push({ key: "experience_max", label: "Up to 2 years required" });
+  if (!filters.includeUncertain) chips.push({ key: "include_uncertain", label: "Confirmed only" });
   if (filters.q) chips.push({ key: "q", label: `“${filters.q}”` });
   if (filters.company) chips.push({ key: "company", label: filters.company });
   if (filters.location) chips.push({ key: "location", label: filters.location });

@@ -1,6 +1,6 @@
 export type WorkMode = "REMOTE" | "HYBRID" | "ONSITE" | "UNKNOWN";
 export type ListingType = "JOB_POSTING" | "SEARCH_RESULT";
-export type SortKey = "newest" | "oldest" | "title";
+export type SortKey = "newest" | "oldest" | "title" | "match";
 export type FeedType = "jobs" | "all" | "search";
 
 export type SourceRef = {
@@ -10,6 +10,15 @@ export type SourceRef = {
 };
 
 export type JobSummary = {
+  apply_url: string | null;
+  original_job_url: string | null;
+  normalized_json: { job_url?: string; apply_url?: string | null } | null;
+  match_score: number | null;
+  match_reasons: string[];
+  india_eligible: boolean | null;
+  experience_min: number | null;
+  experience_max: number | null;
+  status: string;
   id: string;
   canonical_url: string;
   title: string;
@@ -90,6 +99,7 @@ export type DiscoveryRun = {
 };
 
 export type Dashboard = {
+  last_ingestion_attempt_at: string | null;
   total: number;
   job_postings: number;
   search_results: number;
@@ -100,6 +110,10 @@ export type Dashboard = {
 };
 
 export type FeedFilters = {
+  matchProfile: string;
+  indiaEligible: string;
+  maxExperience: string;
+  includeUncertain: boolean;
   q: string;
   company: string;
   location: string;
@@ -115,4 +129,41 @@ export type FeedFilters = {
   minSalary: string;
   currency: string;
   salaryPeriod: string;
+};
+
+export type RegisteredSource = {
+  id: string;
+  company_name: string;
+  career_url: string | null;
+  provider: string;
+  board_id: string;
+  enabled: boolean;
+  access_policy: string;
+  health: string;
+  last_success_at: string | null;
+  last_attempt_at: string | null;
+  failure_count: number;
+  job_count: number;
+  active_run_id: string | null;
+};
+
+export type IngestionRun = {
+  id: string;
+  source_id: string;
+  status: string;
+  started_at: string;
+  finished_at: string | null;
+  fetched: number;
+  inserted: number;
+  updated: number;
+  deduplicated: number;
+  failed: number;
+  errors: { code: string }[];
+};
+
+export type RegistryPage<T> = {
+  items: T[];
+  page: number;
+  page_size: number;
+  total: number;
 };

@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     max_search_requests_per_day: int = Field(default=10, ge=1, le=100)
     default_search_query: str = Field(default="software engineer jobs India", max_length=500)
     enrich_web_results: bool = True
+    redis_url: str = "redis://localhost:6379/0"
+    jobspy_enabled: bool = False
+    browser_enabled: bool = False
+    ingestion_max_pages: int = Field(default=100, ge=1, le=500)
+    ingestion_max_state_mb: int = Field(default=32, ge=1, le=256)
 
     @field_validator("api_token")
     @classmethod

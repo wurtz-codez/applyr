@@ -1,0 +1,37 @@
+[
+  {
+    "company_name": "Greenhouse",
+    "website": "https://www.greenhouse.com/",
+    "provider": "greenhouse",
+    "board_id": "greenhouse",
+    "career_url": "https://job-boards.greenhouse.io/greenhouse",
+    "access_policy": "public_api",
+    "enabled": false,
+    "permission_notes": "Public Job Board GET API. Review current employer terms before enabling."
+  },
+  {
+    "company_name": "Lever demo",
+    "provider": "lever",
+    "board_id": "leverdemo",
+    "career_url": "https://jobs.lever.co/leverdemo",
+    "access_policy": "public_api",
+    "enabled": false,
+    "permission_notes": "Documented public demonstration board; postings may be synthetic."
+  },
+  {
+    "company_name": "Ashby",
+    "website": "https://www.ashbyhq.com/",
+    "career_url": "https://jobs.ashbyhq.com/Ashby",
+    "provider": "auto",
+    "access_policy": "public_api",
+    "enabled": false
+  },
+  {
+    "company_name": "SmartRecruiters",
+    "provider": "smartrecruiters",
+    "board_id": "smartrecruiters",
+    "career_url": "https://careers.smartrecruiters.com/smartrecruiters",
+    "access_policy": "public_api",
+    "enabled": false
+  }
+]

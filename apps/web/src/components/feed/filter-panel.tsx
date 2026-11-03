@@ -169,6 +169,27 @@ export function FeedFilterPanel({
           </div>
         </Group>
 
+        <Group label="Matching profile">
+          <form className="feed-inline-form" onSubmit={(e) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            setSingle("match_profile", String(data.get("profile") || ""));
+          }}>
+            <input className="feed-input" name="profile" defaultValue={filters.matchProfile} placeholder="Profile ID" aria-label="Matching profile ID" />
+            <button className="feed-form-btn">Set</button>
+          </form>
+          <p className="feed-filter-hint">Use a profile ID registered through the API. Scores appear after the matching worker finishes.</p>
+        </Group>
+
+        <Group label="India and junior roles">
+          <label className="feed-check"><input type="checkbox" checked={!!filters.indiaEligible}
+            onChange={(e) => setSingle("india_eligible", e.target.checked ? "true" : "")} /><span>India eligible</span></label>
+          <label className="feed-check"><input type="checkbox" checked={!!filters.maxExperience}
+            onChange={(e) => setSingle("experience_max", e.target.checked ? "2" : "")} /><span>Up to 2 years required</span></label>
+          <label className="feed-check"><input type="checkbox" checked={filters.includeUncertain}
+            onChange={(e) => setSingle("include_uncertain", e.target.checked ? "" : "false")} /><span>Include uncertain requirements</span></label>
+        </Group>
+
         <Group label="Work mode">
           <div className="feed-chip-wrap">
             <Chip active={!filters.workMode} onClick={() => setSingle("work_mode", "")}>

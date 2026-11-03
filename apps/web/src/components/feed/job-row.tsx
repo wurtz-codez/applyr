@@ -42,6 +42,7 @@ export function JobRow({
           <span className="feed-job-source">{providerLabel(job.primary_source)}</span>
           {isNew && <span className="feed-job-new">New</span>}
           {isSearch && <span className="feed-job-new">Search page</span>}
+          {job.match_score != null && <span className="feed-job-new">Match {job.match_score}/100</span>}
         </div>
 
         <h2>{job.title}</h2>
@@ -51,6 +52,9 @@ export function JobRow({
         )}
 
         <div className="feed-job-meta">
+          <span>{job.india_eligible === true ? "India eligible" : job.india_eligible === false ? "Other geography" : "India eligibility uncertain"}</span>
+          {job.experience_min != null && <span>{job.experience_min}{job.experience_max != null ? `–${job.experience_max}` : "+"} years required</span>}
+          {job.status === "closed" && <span>Closed</span>}
           <span>{job.location || "Location unknown"}</span>
           {job.work_mode !== "UNKNOWN" && (
             <span className={job.work_mode === "REMOTE" ? "is-remote" : ""}>
@@ -74,7 +78,8 @@ export function JobRow({
       </div>
 
       <div className="feed-job-side">
-        <span className="feed-job-date">{formatRelativeDate(published)}</span>
+        <span className="feed-job-date">{job.published_at ? "Posted" : "Discovered"} {formatRelativeDate(published)}</span>
+        <span className="feed-job-date">Seen {formatRelativeDate(job.last_seen_at)}</span>
         <span className="feed-job-arrow" aria-hidden="true">↗</span>
       </div>
     </Link>

@@ -34,6 +34,17 @@ class Job(Base):
     first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     content_hash: Mapped[str] = mapped_column(String(64))
+    company_id: Mapped[UUID | None] = mapped_column(ForeignKey("companies.id"), index=True)
+    apply_url: Mapped[str | None] = mapped_column(String(2000), index=True)
+    original_job_url: Mapped[str | None] = mapped_column(String(2000))
+    normalized_json: Mapped[dict | None] = mapped_column(JSON)
+    experience_min: Mapped[int | None] = mapped_column(index=True)
+    experience_max: Mapped[int | None]
+    india_eligible: Mapped[bool | None] = mapped_column(index=True)
+    status: Mapped[str] = mapped_column(String(20), default="active", server_default="active")
+    valid_through: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ats_identity: Mapped[str | None] = mapped_column(String(500), unique=True)
+    requisition_id: Mapped[str | None] = mapped_column(String(200), index=True)
 
 
 class JobTag(Base):
@@ -45,8 +56,15 @@ class JobTag(Base):
 
 
 class JobSource(Base):
-    __tablename__ = "job_sources"
-    __table_args__ = (UniqueConstraint("job_id", "provider"),)
+    __tablename__ = "job_source_occurrences"
+    __table_args__ = (UniqueConstraint("source_id", "external_id"),)
+    source_id: Mapped[UUID | None] = mapped_column(ForeignKey("job_sources.id"), index=True)
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    metadata_json: Mapped[dict | None] = mapped_column(JSON)
+    ats_identity: Mapped[str | None] = mapped_column(String(500), index=True)
+    raw_json: Mapped[dict | None] = mapped_column(JSON)
+    active: Mapped[bool] = mapped_column(default=True)
+
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     job_id: Mapped[UUID] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
     provider: Mapped[str] = mapped_column(String(30), index=True)
@@ -87,3 +105,76 @@ class SearchAttempt(Base):
     __tablename__ = "search_attempts"
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     attempted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class Company(Base):
+    __tablename__ = "companies"
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String(300))
+    website: Mapped[str | None] = mapped_column(String(2000), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class IngestionSource(Base):
+    __tablename__ = "job_sources"
+    __table_args__ = (UniqueConstraint("provider", "board_id"),)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"), index=True)
+    company_name: Mapped[str] = mapped_column(String(300))
+    career_url: Mapped[str | None] = mapped_column(String(2000))
+    provider: Mapped[str] = mapped_column(String(30), index=True)
+    board_id: Mapped[str] = mapped_column(String(200))
+    source_type: Mapped[str] = mapped_column(String(30), default="ats")
+    configuration: Mapped[dict] = mapped_column(JSON, default=dict)
+    enabled: Mapped[bool] = mapped_column(default=True)
+    access_policy: Mapped[str] = mapped_column(String(30))
+    permission_notes: Mapped[str | None] = mapped_column(Text)
+    fetch_interval_seconds: Mapped[int] = mapped_column(default=21600)
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_fetch_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    failure_count: Mapped[int] = mapped_column(default=0)
+    health: Mapped[str] = mapped_column(String(30), default="unverified")
+    sync_state: Mapped[dict] = mapped_column(JSON, default=dict)
+    active_run_id: Mapped[UUID | None] = mapped_column(Uuid)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class IngestionRun(Base):
+    __tablename__ = "ingestion_runs"
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    source_id: Mapped[UUID] = mapped_column(ForeignKey("job_sources.id"), index=True)
+    status: Mapped[str] = mapped_column(String(30), default="QUEUED", index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    fetched: Mapped[int] = mapped_column(default=0)
+    inserted: Mapped[int] = mapped_column(default=0)
+    updated: Mapped[int] = mapped_column(default=0)
+    deduplicated: Mapped[int] = mapped_column(default=0)
+    failed: Mapped[int] = mapped_column(default=0)
+    errors: Mapped[list] = mapped_column(JSON, default=list)
+
+
+class MatchingProfile(Base):
+    __tablename__ = "matching_profiles"
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_key: Mapped[str] = mapped_column(String(200), unique=True)
+    configuration: Mapped[dict] = mapped_column(JSON)
+    enabled: Mapped[bool] = mapped_column(default=True)
+    needs_refresh: Mapped[bool] = mapped_column(default=True, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class JobMatch(Base):
+    __tablename__ = "job_matches"
+    profile_id: Mapped[UUID] = mapped_column(
+        ForeignKey("matching_profiles.id", ondelete="CASCADE"), primary_key=True
+    )
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True
+    )
+    score: Mapped[float] = mapped_column(index=True)
+    reasons: Mapped[list] = mapped_column(JSON)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

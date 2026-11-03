@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.database import get_session, migrate
 from app.discovery import create_run, execute_run, run_response
-from app.models import DiscoveryRun, Job, SourceState, now
+from app.ingestion.api import router as ingestion_router
+from app.models import DiscoveryRun, IngestionSource, Job, SourceState, now
 from app.queries import Filters, facets, filtered, list_jobs, serialize_many, total
 from app.schemas import DiscoveryInput, JobResponse, JobsPage, RunResponse
 from app.sources import PROVIDERS
@@ -86,6 +87,9 @@ def dashboard(filters: Annotated[Filters, Query()], session: Session = Depends(g
         )
         or 0,
         "last_run": run_response(latest).model_dump(mode="json") if latest else None,
+        "last_ingestion_attempt_at": session.scalar(
+            select(func.max(IngestionSource.last_attempt_at))
+        ),
     }
 
 
@@ -136,4 +140,5 @@ def run_detail(run_id: UUID, session: Session = Depends(get_session)):
     return run_response(row)
 
 
+api.include_router(ingestion_router)
 app.include_router(api)

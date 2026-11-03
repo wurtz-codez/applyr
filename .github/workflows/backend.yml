@@ -1,4 +1,4 @@
-name: Backend checks
+name: Application checks
 on:
   push:
   pull_request:
@@ -36,3 +36,18 @@ jobs:
         working-directory: apps/api
       - run: uv run --frozen alembic check
         working-directory: apps/api
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10.24.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm --dir apps/web install --frozen-lockfile
+      - run: pnpm --dir apps/web typecheck
+      - run: pnpm --dir apps/web build

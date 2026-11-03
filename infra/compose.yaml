@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: applyr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-applyr-local-only}
+      POSTGRES_DB: applyr
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U applyr"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    environment: &backend-env
+      API_TOKEN: ${API_TOKEN:?Set API_TOKEN in root .env}
+      JOBS_DATABASE_URL: postgresql+psycopg://applyr:${POSTGRES_PASSWORD:-applyr-local-only}@postgres/applyr
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    environment: *backend-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    environment: *backend-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: ["celery", "-A", "app.workers.celery_app:celery", "worker", "-Q", "ingestion", "--concurrency=2", "--loglevel=INFO"]
+  beat:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    environment: *backend-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: ["celery", "-A", "app.workers.celery_app:celery", "beat", "--loglevel=INFO"]
+volumes:
+  postgres:
+  redis:

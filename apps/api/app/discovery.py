@@ -40,8 +40,6 @@ def create_run(session: Session, payload: DiscoveryInput):
     providers = payload.providers
     if providers is None:
         providers = ["arbeitnow", "remotive", "jobicy"]
-        if get_settings().tavily_api_key:
-            providers.append("tavily")
     providers = list(dict.fromkeys(providers))
     if "tavily" in providers and not get_settings().tavily_api_key:
         raise HTTPException(409, "Set TAVILY_API_KEY in the local .env to enable web search")
@@ -88,7 +86,7 @@ def priority(provider, listing_type, enrichment):
     return (
         2 if listing_type == "JOB_POSTING" else 1,
         2 if enrichment == "EXTRACTED" else 1,
-        {"arbeitnow": 4, "jobicy": 3, "remotive": 2, "tavily": 1}[provider],
+        {"arbeitnow": 4, "jobicy": 3, "remotive": 2, "tavily": 1}.get(provider, 10),
     )
 
 
@@ -135,6 +133,10 @@ def store_jobs(session, provider, items):
             item.external_id,
             now(),
         )
+    if counts["new"] or counts["updated"]:
+        from app.ingestion.matching import mark_dirty
+
+        mark_dirty(session)
     session.commit()
     return counts
 

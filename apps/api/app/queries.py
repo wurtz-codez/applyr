@@ -1,12 +1,13 @@
 import math
 from datetime import timedelta
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import func, or_, select
 
-from app.models import Job, JobSource, JobTag, now
-from app.schemas import JobResponse, JobsPage, JobSummary, Provider, SourceRef, WorkMode
+from app.models import Job, JobMatch, JobSource, JobTag, now
+from app.schemas import JobResponse, JobsPage, JobSummary, SourceRef, WorkMode
 
 
 class Filters(BaseModel):
@@ -18,7 +19,14 @@ class Filters(BaseModel):
     employment_type: str | None = Field(default=None, max_length=80)
     experience_level: str | None = Field(default=None, max_length=80)
     listing_type: Literal["JOB_POSTING", "SEARCH_RESULT"] | None = None
-    source: list[Provider] = Field(default_factory=list, max_length=4)
+    source: list[Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]{0,29}$")]] = Field(
+        default_factory=list, max_length=20
+    )
+    india_eligible: bool | None = None
+    experience_max: int | None = Field(default=None, ge=0, le=60)
+    include_uncertain: bool = True
+    status: Literal["active", "closed"] | None = None
+    match_profile: UUID | None = None
     tag: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
         default_factory=list, max_length=10
     )
@@ -27,12 +35,14 @@ class Filters(BaseModel):
     min_salary: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
     salary_period: Literal["hourly", "daily", "weekly", "monthly", "yearly"] | None = None
-    sort: Literal["newest", "oldest", "salary_desc", "title"] = "newest"
+    sort: Literal["newest", "oldest", "salary_desc", "title", "match"] = "newest"
     page: int = Field(default=1, ge=1, le=100000)
     page_size: int = Field(default=25, ge=1, le=100)
 
     @model_validator(mode="after")
     def salary_units(self):
+        if self.sort == "match" and self.match_profile is None:
+            raise ValueError("Match sorting requires match_profile")
         if (self.min_salary is not None or self.sort == "salary_desc") and not (
             self.currency and self.salary_period
         ):
@@ -46,6 +56,22 @@ def pattern(value):
 
 def filtered(filters: Filters):
     query = select(Job)
+    if filters.match_profile:
+        query = query.join(JobMatch, JobMatch.job_id == Job.id).where(
+            JobMatch.profile_id == filters.match_profile
+        )
+    if filters.status:
+        query = query.where(Job.status == filters.status)
+    if filters.india_eligible is not None:
+        test = Job.india_eligible == filters.india_eligible
+        query = query.where(
+            or_(test, Job.india_eligible.is_(None)) if filters.include_uncertain else test
+        )
+    if filters.experience_max is not None:
+        test = Job.experience_min <= filters.experience_max
+        query = query.where(
+            or_(test, Job.experience_min.is_(None)) if filters.include_uncertain else test
+        )
     if filters.q:
         term = pattern(filters.q)
         query = query.where(
@@ -93,7 +119,7 @@ def total(session, query):
     return session.scalar(select(func.count()).select_from(query.order_by(None).subquery())) or 0
 
 
-def serialize_many(session, rows, detail=False):
+def serialize_many(session, rows, detail=False, match_profile=None):
     ids = [row.id for row in rows]
     tags, sources = {}, {}
     if ids:
@@ -111,17 +137,41 @@ def serialize_many(session, rows, detail=False):
                     last_seen_at=item.last_seen_at,
                 )
             )
+    matches = {}
+    if ids and match_profile:
+        matches = {
+            m.job_id: m
+            for m in session.scalars(
+                select(JobMatch).where(
+                    JobMatch.job_id.in_(ids), JobMatch.profile_id == match_profile
+                )
+            )
+        }
     result = []
     schema = JobResponse if detail else JobSummary
-    fields = set(schema.model_fields) - {"tags", "sources", "description_excerpt"}
+    fields = set(schema.model_fields) - {
+        "tags",
+        "sources",
+        "description_excerpt",
+        "match_score",
+        "match_reasons",
+    }
     for row in rows:
         values = {name: getattr(row, name) for name in fields}
+        if not detail and values.get("normalized_json"):
+            values["normalized_json"] = {
+                key: value
+                for key, value in values["normalized_json"].items()
+                if key != "description"
+            }
         result.append(
             schema(
                 **values,
                 description_excerpt=row.description[:400],
                 tags=tags.get(row.id, []),
                 sources=sources.get(row.id, []),
+                match_score=matches[row.id].score if row.id in matches else None,
+                match_reasons=matches[row.id].reasons if row.id in matches else [],
             )
         )
     return result
@@ -136,6 +186,7 @@ def list_jobs(session, filters):
         "oldest": posted.asc(),
         "title": func.lower(Job.title).asc(),
         "salary_desc": func.coalesce(Job.salary_max, Job.salary_min).desc().nulls_last(),
+        "match": JobMatch.score.desc(),
     }[filters.sort]
     rows = session.scalars(
         query.order_by(order, Job.id)
@@ -143,7 +194,7 @@ def list_jobs(session, filters):
         .limit(filters.page_size)
     ).all()
     return JobsPage(
-        items=serialize_many(session, rows),
+        items=serialize_many(session, rows, match_profile=filters.match_profile),
         total=count,
         page=filters.page,
         page_size=filters.page_size,

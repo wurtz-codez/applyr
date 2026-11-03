@@ -140,7 +140,7 @@ export function FeedToolbar({
             }
           >
             {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
+              <option key={option.value} value={option.value} disabled={option.value === "match" && !filters.matchProfile}>
                 {option.label}
               </option>
             ))}

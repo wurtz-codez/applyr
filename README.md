@@ -2,8 +2,10 @@
 
 **Collect jobs from multiple sources. Explore them in one filterable dashboard.**
 
-Applyr combines public job feeds and Tavily web search, removes duplicate listings, and serves
-them through a Next.js dashboard backed by FastAPI and PostgreSQL.
+Applyr ingests documented public ATS boards, permitted career pages, and public job feeds,
+normalizes and deduplicates their listings, and serves a Next.js dashboard backed by FastAPI
+and PostgreSQL. Basic ingestion needs no paid API keys. Optional Tavily company discovery
+returns source suggestions; it is not the default job listing engine.
 
 [Quick start](#quick-start) · [Using the dashboard](#using-the-dashboard) ·
 [Everyday commands](#everyday-commands) · [Troubleshooting](#troubleshooting) ·
@@ -19,16 +21,34 @@ them through a Next.js dashboard backed by FastAPI and PostgreSQL.
 | Inspect a role | Job details, original listing link, and source attribution |
 | Keep search results honest | Structured job postings and incomplete search pages are labeled separately |
 | Keep collected data between sessions | PostgreSQL storage and refresh history |
+| Register employer boards | Greenhouse, Lever (global/EU), Ashby, SmartRecruiters |
+| Run durable scheduled ingestion | Celery + Redis + Beat, source leases, retries, health and run monitoring |
+| Keep cross-source provenance | Canonical jobs plus independent source occurrences |
+| Extract permitted career pages | JSON-LD, configured HTML, sitemap and RSS/Atom detail links |
+| Rank a user's catalog | Independent matching profiles, deterministic scores and uncertainty reasons |
+| Manage source coverage | `/jobs/sources` dashboard, add/enable/disable/sync actions |
 
-The current project focuses on discovery and browsing. Resume tailoring, AI suitability
-matching, and automatic applications are outside this version.
+The current implementation includes deterministic profile ranking. LLM reranking, resume
+tailoring, automatic applications, tenant authentication, automated daily company discovery,
+and large Scrapy crawling workflows remain planned. JobSpy and Playwright adapters are
+optional and disabled by default; neither is required for a default self-hosted installation.
+
+Technical documentation: [architecture](docs/JOB_INGESTION_ARCHITECTURE.md) ·
+[connector contributor guide](docs/CONNECTOR_DEVELOPMENT.md) ·
+[exact ingestion setup and troubleshooting](docs/JOB_INGESTION_SETUP.md).
 
 ## How it works
 
 ```mermaid
 flowchart LR
+    REGISTRY["Company/source registry"] --> QUEUE["PostgreSQL runs → Celery / Redis / Beat"]
+    QUEUE --> ATS["Greenhouse · Lever · Ashby · SmartRecruiters"]
+    QUEUE --> CRAWL["Permitted career-page connectors"]
+    ATS --> NORMALIZE
+    CRAWL --> NORMALIZE
     FEEDS["Public job feeds<br/>Arbeitnow · Remotive · Jobicy"] --> NORMALIZE["Normalize and deduplicate"]
-    SEARCH["Tavily web search"] --> PAGES["Check public job pages"]
+    DISCOVERY["Optional Tavily source suggestions"] --> REGISTRY
+    SEARCH["Explicit legacy Tavily search"] --> PAGES["Check public job pages"]
     PAGES --> STRUCTURED{"Structured job data?"}
     STRUCTURED -- Yes --> NORMALIZE
     STRUCTURED -- No --> LEADS["Labeled search results<br/>Unknown fields stay empty"]
@@ -71,6 +91,41 @@ PostgreSQL is required. Docker, Redis, and a Tavily key are not needed to start 
 feeds.
 
 ## Quick start
+
+For the durable ATS ingestion engine, start PostgreSQL and Redis, then run:
+
+```sh
+python3 scripts/bootstrap.py
+uv sync --project apps/api --frozen
+createdb applyr  # only if the database does not already exist
+uv run --project apps/api --frozen python -m app.cli init-db
+uv run --project apps/api --frozen python -m app.ingestion.cli seed config/job_sources.example.json
+```
+
+Start each service in its own terminal:
+
+```sh
+uv run --project apps/api --frozen uvicorn app.main:app --host 127.0.0.1 --port 8000
+uv run --project apps/api --frozen celery -A app.workers.celery_app:celery worker -Q ingestion --concurrency=2 --loglevel=INFO
+uv run --project apps/api --frozen celery -A app.workers.celery_app:celery beat --loglevel=INFO
+pnpm --dir apps/web install --frozen-lockfile
+pnpm --dir apps/web dev
+```
+
+Review and enable an example source at `/jobs/sources`, enter your administrator token,
+and request sync. The API returns a queued run; Beat dispatches it within the next minute.
+Examples are disabled initially so operators can review access terms. A local maintenance
+sync can run without Redis using `python -m app.ingestion.cli sync SOURCE_UUID --inline`.
+
+For local macOS/Python 3.14 development, replace the worker's `--concurrency=2` with
+`--pool=solo --concurrency=1`; see the setup guide for the verified local command.
+
+Docker alternative: `docker compose --env-file .env -f infra/compose.yaml up --build -d`.
+See [the setup guide](docs/JOB_INGESTION_SETUP.md) for token handling, registration, matching,
+Docker seeding, test commands and optional adapters. Default ingestion requires neither
+Tavily nor a model API key.
+
+The existing feed-only development workflow below remains available:
 
 Already have the repository checked out? Install both apps and start them together with one
 command:
@@ -172,7 +227,8 @@ make refresh
 make jobs
 ```
 
-The collector uses the public feeds and includes Tavily when a key is configured. The first
+The legacy collector uses the public feeds by default. Select `--provider tavily` explicitly
+to use the optional compatibility search path. The first
 refresh can take a few minutes. It prints a run summary with per-source counts and errors;
 `make jobs` previews collected records in the terminal. This step does not require the API
 server to be running.
@@ -244,7 +300,8 @@ all records. Missing salary, location, and other fields are shown as unknown rat
 Salary filtering needs an amount, currency, and period so hourly/yearly or different currencies
 are not silently mixed.
 
-**To collect newer jobs:** run `make refresh` in another terminal, then reload the feed.
+**To collect newer jobs:** registered boards sync on schedule or through `/jobs/sources`.
+The legacy public-feed path still supports `make refresh` in another terminal.
 Changing filters or reloading the dashboard searches stored records; it does not launch a new
 web search. Provider cooldowns may reuse the existing data instead of fetching again.
 
@@ -446,3 +503,27 @@ previous implementation; they are not used by the current backend.
 [JobPosting structured data](https://developers.google.com/search/docs/appearance/structured-data/job-posting)
 
 [MIT license](LICENSE).
+
+## Contributing ingestion sources
+
+Contribute documented public ATS adapters or employer-authorized integrations through the
+[connector guide](docs/CONNECTOR_DEVELOPMENT.md). New connectors register through one typed
+interface; the orchestrator does not need provider-specific parsing branches. Add synthetic
+fixtures, permission/attribution notes, dependency declarations, and tests. Company board
+contributions can extend the reviewed JSON seed format in `config/job_sources.example.json`.
+Do not commit credentials, applicant data, or third-party job datasets.
+
+Validation from the repository root:
+
+```sh
+uv run --project apps/api --frozen ruff check apps/api
+TEST_DATABASE_URL=postgresql+psycopg://localhost/applyr_test uv run --project apps/api --frozen pytest apps/api/tests -q
+(cd apps/api && uv run --frozen alembic check)
+pnpm --dir apps/web typecheck
+pnpm --dir apps/web build
+```
+
+Tests use a real dedicated PostgreSQL database and mocked external requests. The new
+migration revisions are `f19d7a21` (registry/catalog/provenance/runs) and `b812c730` (profile
+matching), plus `c32ef819` (indexed alternate source identities). See the [architecture's implementation status](docs/JOB_INGESTION_ARCHITECTURE.md#19-implementation-status)
+for verified functionality, operational limits and planned improvements.

@@ -16,7 +16,8 @@ export default function JobsLayout({
           <span className="feed-brand-sup">/ feed</span>
         </Link>
         <nav className="feed-nav-links" aria-label="Main navigation">
-          <Link href="/jobs" aria-current="page">The feed</Link>
+          <Link href="/jobs">The feed</Link>
+          <Link href="/jobs/sources">Sources</Link>
           <Link href="/#system">How it works</Link>
           <a href={GITHUB} target="_blank" rel="noopener noreferrer">
             GitHub ↗

@@ -63,7 +63,10 @@ export default async function JobsPage({
   const tags = facetedValues(facets.tags, { limit: 12 });
   const sources = facetedValues(facets.sources);
   const lastRun = dashboard.last_run;
-  const lastRunTime = lastRun ? lastRun.finished_at ?? lastRun.started_at : null;
+  const scanTimes = [lastRun ? lastRun.finished_at ?? lastRun.started_at : null, dashboard.last_ingestion_attempt_at]
+    .filter((value): value is string => !!value)
+    .sort((a, b) => Date.parse(b) - Date.parse(a));
+  const lastRunTime = scanTimes[0] ?? null;
   const providerNames = sources
     .map((source) => providerLabel(source.value))
     .join(" · ");

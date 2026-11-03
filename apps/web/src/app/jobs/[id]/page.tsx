@@ -56,7 +56,8 @@ export default async function JobDetailPage({
   const salary = formatSalary(job);
   const published = job.published_at ?? job.first_seen_at;
   const postedLabel = job.published_at ? "Posted" : "First seen";
-  const canonicalHost = sourceHost(job.canonical_url);
+  const originalUrl = job.normalized_json?.apply_url ?? job.apply_url ?? job.original_job_url ?? job.canonical_url;
+  const canonicalHost = sourceHost(originalUrl);
   const otherSources = job.sources.filter(
     (source) => source.source_url !== job.canonical_url,
   );
@@ -126,7 +127,7 @@ export default async function JobDetailPage({
             <span className="feed-filter-label">Original listing</span>
             <p className="job-source-host">{canonicalHost}</p>
             <a
-              href={job.canonical_url}
+              href={originalUrl}
               className="feed-btn"
               target="_blank"
               rel="noopener noreferrer"
